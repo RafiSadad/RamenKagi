@@ -15,7 +15,7 @@ export default function Navbar({ onCartClick }: NavbarProps) {
     return (
         <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/90 border-b border-border">
             <div className="max-w-md mx-auto flex items-center justify-between px-4 py-3">
-                {/* Logo + NO PORK & LARD */}
+                {/* Logo + NO PORK & NO LARD */}
                 <div className="flex items-center gap-2.5">
                     <Image
                         src="/images/logo-kagi.webp"
@@ -24,15 +24,15 @@ export default function Navbar({ onCartClick }: NavbarProps) {
                         height={36}
                         className="w-9 h-9 object-contain"
                     />
-                    <div>
-                        <h1 className="text-lg font-bold text-foreground tracking-tight leading-none font-display">
-                            KAGI
+                    <div className="flex flex-col gap-0.5 leading-tight">
+                        <h1 className="text-lg font-bold text-foreground tracking-tight font-display">
+                            Ramen KAGI
                         </h1>
-                        <p className="text-[10px] text-primary tracking-[0.25em] uppercase leading-none">
-                            Ramen House
+                        <p className="text-[10px] text-primary" lang="ja">
+                            ラーメンハウス
                         </p>
-                        <span className="inline-block mt-1 text-[9px] font-medium text-halal tracking-wide">
-                            NO PORK & LARD
+                        <span className="text-[9px] font-medium text-primary tracking-[0.12em] uppercase">
+                            NO PORK & NO LARD
                         </span>
                     </div>
                 </div>

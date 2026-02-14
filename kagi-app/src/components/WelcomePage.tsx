@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import type { WelcomePage as WelcomePageType } from "@/types/menu";
 
 interface WelcomePageProps {
@@ -9,16 +8,16 @@ interface WelcomePageProps {
     onEnter: () => void;
 }
 
-const DEFAULT_TITLE = "Welcome to Kagi Ramen";
-const DEFAULT_SUBTITLE = "Nikmati menu kami yang dibuat dengan penuh cinta dan cita rasa autentik Jepang.";
 const DEFAULT_CTA = "Lihat Menu";
 
 export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
-    const title = welcome?.title?.trim() || DEFAULT_TITLE;
-    const subtitle = welcome?.subtitle?.trim() || DEFAULT_SUBTITLE;
+    const title = welcome?.title?.trim() ?? "";
+    const subtitle = welcome?.subtitle?.trim() ?? "";
     const ctaText = welcome?.ctaText?.trim() || DEFAULT_CTA;
     const bgUrl = welcome?.backgroundMediaUrl?.trim();
     const bgType = welcome?.backgroundMediaType || "image";
+    const hasTitle = title.length > 0;
+    const hasSubtitle = subtitle.length > 0;
 
     return (
         <AnimatePresence>
@@ -49,7 +48,7 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
                             )}
-                            <div className="absolute inset-0 bg-background/70 z-10" />
+                            <div className="absolute inset-0 bg-black/35 z-10" />
                         </>
                     ) : (
                         <>
@@ -73,58 +72,48 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                         </>
                     )}
 
-                    {/* Japanese pattern overlay */}
-                    <div className="absolute inset-0 opacity-[0.03] z-10"
+                    {/* Subtle pattern overlay — hanya saat ada background media */}
+                    {bgUrl && (
+                    <div className="absolute inset-0 opacity-[0.02] z-10"
                         style={{
                             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFF9EC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
                         }}
                     />
+                    )}
                 </div>
 
-                {/* Content */}
+                {/* Content — tanpa logo; teks hanya tampil kalau diisi di Sanity */}
                 <div className="relative z-20 flex flex-col items-center justify-center flex-1 px-6 max-w-md mx-auto">
-                    {/* Logo */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
-                        className="mb-8"
-                    >
-                        <Image
-                            src="/images/logo-kagi.webp"
-                            alt="Kagi Ramen"
-                            width={200}
-                            height={200}
-                            className="w-44 h-auto drop-shadow-2xl"
-                            priority
-                        />
-                    </motion.div>
-
-                    {/* Tagline — editable dari Sanity */}
+                    {(hasTitle || hasSubtitle) && (
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.7, delay: 0.5 }}
+                        transition={{ duration: 0.7, delay: 0.3 }}
                         className="text-center mb-4"
                     >
-                        <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight tracking-tight font-display">
-                            {title.includes("Kagi Ramen") ? (
-                                <>
-                                    {title.replace("Kagi Ramen", "").trim()}{" "}
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-600">
-                                        Kagi Ramen
+                        {hasTitle && (
+                            <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight tracking-tight font-display">
+                                {title.includes("Kagi Ramen") ? (
+                                    <>
+                                        {title.replace("Kagi Ramen", "").trim()}{" "}
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-600">
+                                            Kagi Ramen
+                                        </span>
+                                    </>
+                                ) : (
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-primary to-orange-600">
+                                        {title}
                                     </span>
-                                </>
-                            ) : (
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-primary to-orange-600">
-                                    {title}
-                                </span>
-                            )}
-                        </h1>
-                        <p className="text-foreground/50 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
-                            {subtitle}
-                        </p>
+                                )}
+                            </h1>
+                        )}
+                        {hasSubtitle && (
+                            <p className="text-foreground/50 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
+                                {subtitle}
+                            </p>
+                        )}
                     </motion.div>
+                    )}
                 </div>
 
                 {/* CTA Button — pinned to bottom */}

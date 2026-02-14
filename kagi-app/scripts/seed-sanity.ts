@@ -168,7 +168,7 @@ async function seed() {
     {
       _id: "banner-no-pork",
       _type: "banner" as const,
-      title: "NO PORK & LARD",
+      title: "NO PORK & NO LARD",
       headline: "Halal & Aman untuk Teman Kagi.",
       subtitle: "Nikmati ramen dengan tenang.",
       order: 2,

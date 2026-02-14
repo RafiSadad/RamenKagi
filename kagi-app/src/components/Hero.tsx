@@ -16,7 +16,7 @@ export default function Hero() {
             </div>
 
             <div className="relative max-w-md mx-auto">
-                {/* NO PORK & LARD Badge */}
+                {/* NO PORK & NO LARD Badge */}
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -24,7 +24,7 @@ export default function Hero() {
                     className="flex items-center gap-2 mb-4"
                 >
                     <span className="inline-flex items-center gap-1.5 bg-[#335005]/20 border border-[#335005]/30 text-[#7ab33a] text-xs font-bold px-3 py-1 rounded-full">
-                        ✅ NO PORK & LARD
+                        ✅ NO PORK & NO LARD
                     </span>
                     <span className="text-[#FFF9EC]/40 text-xs">Halal & Aman</span>
                 </motion.div>
