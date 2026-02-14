@@ -50,12 +50,26 @@ export default function HomeClient({
             <Navbar onCartClick={() => setCartOpen(true)} />
 
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.08,
+                    delayChildren: 0.15,
+                  },
+                },
+              }}
+              className="contents"
             >
-              <HeroBanner banners={banners} />
-              <MenuGrid categories={categories} menuItems={menuItems} />
+              <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
+                <HeroBanner banners={banners} />
+              </motion.div>
+              <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
+                <MenuGrid categories={categories} menuItems={menuItems} />
+              </motion.div>
             </motion.div>
 
             <CartDrawer

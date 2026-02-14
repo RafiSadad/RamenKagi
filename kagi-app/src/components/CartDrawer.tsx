@@ -32,15 +32,15 @@ export default function CartDrawer({
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent className="bg-[#1a1410] border-t border-[#FFF9EC]/10 max-h-[90vh]">
+            <DrawerContent className="bg-card border-t border-border max-h-[90vh]">
                 <div className="mx-auto w-full max-w-md">
                     <DrawerHeader className="px-4 pb-2">
                         <div className="flex items-center justify-between">
-                            <DrawerTitle className="text-[#FFF9EC] flex items-center gap-2">
-                                <ShoppingCart className="w-5 h-5 text-[#FFAF03]" />
+                            <DrawerTitle className="text-card-foreground flex items-center gap-2">
+                                <ShoppingCart className="w-5 h-5 text-primary" />
                                 Keranjang
                                 {getTotalItems() > 0 && (
-                                    <span className="bg-[#FFAF03] text-[#47240F] text-xs font-bold px-2 py-0.5 rounded-full">
+                                    <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
                                         {getTotalItems()}
                                     </span>
                                 )}
@@ -52,10 +52,10 @@ export default function CartDrawer({
                         {items.length === 0 ? (
                             <div className="text-center py-12">
                                 <span className="text-5xl block mb-3">🍜</span>
-                                <p className="text-[#FFF9EC]/40 text-sm">
+                                <p className="text-muted-foreground text-sm">
                                     Keranjang masih kosong nih...
                                 </p>
-                                <p className="text-[#FFF9EC]/30 text-xs mt-1">
+                                <p className="text-muted-foreground/80 text-xs mt-1">
                                     Yuk pilih ramen favoritmu, Teman Kagi!
                                 </p>
                             </div>
@@ -69,9 +69,9 @@ export default function CartDrawer({
                                 </AnimatePresence>
 
                                 {/* Subtotal */}
-                                <div className="flex items-center justify-between mt-4 py-3 border-t border-[#FFF9EC]/10">
-                                    <span className="text-[#FFF9EC]/60 text-sm">Subtotal</span>
-                                    <span className="text-[#FFF9EC] font-bold text-lg">
+                                <div className="flex items-center justify-between mt-4 py-3 border-t border-border">
+                                    <span className="text-muted-foreground text-sm">Subtotal</span>
+                                    <span className="text-card-foreground font-bold text-lg">
                                         {formatRupiah(getTotalPrice())}
                                     </span>
                                 </div>

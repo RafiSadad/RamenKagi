@@ -7,7 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --color-halal: var(--halal);
+  --color-cream-card: var(--cream-card);
+  --font-sans: var(--font-dm-sans), system-ui, sans-serif;
+  --font-display: var(--font-literata), var(--font-dm-sans), system-ui, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -47,50 +50,51 @@
 }
 
 /* 
- * Kagi Ramen Brand Palette:
- * Bright Pearl: #FFF9EC (warm cream)
- * Creamy Yellow: #FAFAD0 (card bg)
- * Warm Dark Brown: #47240F (text)
- * Chinese Yellow: #FFAF03 (CTA accent)
- * Crimson Red: #CC3939 (spicy accent)
- * Freeway Green: #335005 (halal indicator)
- *
- * Dark mode adaptation — dark charcoal base with brand accents
+ * Kagi Ramen — Buku Menu Brand Palette:
+ * Dark Teal: #1A4B56 (background utama, sophisticated)
+ * Teal medium: #234A52 (card/surface)
+ * White: #FFFFFF (teks di atas dark)
+ * Warm Cream: #F5EFE6 (content block / light area)
+ * Vibrant Orange: #E67E22 (aksen CTA, garis pemisah)
+ * Crimson: #CC3939 (spicy, sold out)
+ * Freeway Green: #335005 (halal, NO PORK & LARD)
  */
 
 :root {
   --radius: 0.75rem;
-  --background: #0f0f0f;
-  --foreground: #FFF9EC;
-  --card: #1a1410;
-  --card-foreground: #FFF9EC;
-  --popover: #1a1410;
-  --popover-foreground: #FFF9EC;
-  --primary: #FFAF03;
-  --primary-foreground: #47240F;
-  --secondary: #231810;
-  --secondary-foreground: #FFF9EC;
-  --muted: #231810;
-  --muted-foreground: #a89080;
-  --accent: #231810;
-  --accent-foreground: #FFF9EC;
+  --background: #1A4B56;
+  --foreground: #FFFFFF;
+  --card: #234A52;
+  --card-foreground: #FFFFFF;
+  --popover: #234A52;
+  --popover-foreground: #FFFFFF;
+  --primary: #E67E22;
+  --primary-foreground: #FFFFFF;
+  --secondary: #1A4B56;
+  --secondary-foreground: #FFFFFF;
+  --muted: #2D5A63;
+  --muted-foreground: rgba(255, 255, 255, 0.7);
+  --accent: #2D5A63;
+  --accent-foreground: #FFFFFF;
   --destructive: #CC3939;
-  --border: rgba(255, 249, 236, 0.08);
-  --input: rgba(255, 249, 236, 0.08);
-  --ring: #FFAF03;
-  --chart-1: #FFAF03;
+  --border: rgba(255, 255, 255, 0.12);
+  --input: rgba(255, 255, 255, 0.08);
+  --ring: #E67E22;
+  --chart-1: #E67E22;
   --chart-2: #CC3939;
   --chart-3: #335005;
-  --chart-4: #FAFAD0;
-  --chart-5: #47240F;
-  --sidebar: #1a1410;
-  --sidebar-foreground: #FFF9EC;
-  --sidebar-primary: #FFAF03;
-  --sidebar-primary-foreground: #47240F;
-  --sidebar-accent: #231810;
-  --sidebar-accent-foreground: #FFF9EC;
-  --sidebar-border: rgba(255, 249, 236, 0.08);
-  --sidebar-ring: #FFAF03;
+  --chart-4: #F5EFE6;
+  --chart-5: #1A4B56;
+  --sidebar: #234A52;
+  --sidebar-foreground: #FFFFFF;
+  --sidebar-primary: #E67E22;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #2D5A63;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-ring: #E67E22;
+  --halal: #335005;
+  --cream-card: #F5EFE6;
 }
 
 @layer base {

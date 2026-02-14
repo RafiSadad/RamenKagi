@@ -35,9 +35,9 @@ export default function HeroBanner({ banners }: { banners: Banner[] }) {
 
     if (!banners?.length) {
         return (
-            <section className="relative overflow-hidden bg-gradient-to-b from-[#0f0f0f] via-[#1a1410] to-[#231810] px-4 pt-6 pb-8">
+            <section className="relative overflow-hidden bg-gradient-to-b from-background via-card to-secondary px-4 pt-6 pb-8">
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23FFF9EC' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }} />
-                <div className="relative max-w-md mx-auto rounded-2xl min-h-[140px] flex items-center justify-center text-[#FFF9EC]/50 text-sm">
+                <div className="relative max-w-md mx-auto rounded-2xl min-h-[140px] flex items-center justify-center text-foreground/50 text-sm">
                     Tambah banner di Sanity Studio (tipe &quot;banner&quot;, maks. 3).
                 </div>
             </section>
@@ -48,7 +48,7 @@ export default function HeroBanner({ banners }: { banners: Banner[] }) {
     const href = current?.link || undefined;
 
     return (
-        <section className="relative overflow-hidden bg-gradient-to-b from-[#0f0f0f] via-[#1a1410] to-[#231810] px-4 pt-6 pb-8">
+        <section className="relative overflow-hidden bg-gradient-to-b from-background via-card to-secondary px-4 pt-6 pb-8">
             {/* Japanese Seigaiha Pattern */}
             <div className="absolute inset-0 opacity-[0.03]">
                 <div
@@ -91,10 +91,10 @@ export default function HeroBanner({ banners }: { banners: Banner[] }) {
                                 type="button"
                                 aria-label={`Banner ${i + 1}`}
                                 onClick={() => goTo(i)}
-                                className={`h-2 rounded-full transition-all duration-300 ${
+                                className={`h-2 rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                                     i === index
-                                        ? "w-6 bg-[#FFAF03]"
-                                        : "w-2 bg-[#FFF9EC]/30 hover:bg-[#FFF9EC]/50"
+                                        ? "w-6 bg-primary"
+                                        : "w-2 bg-foreground/30 hover:bg-foreground/50"
                                 }`}
                             />
                         ))}
@@ -107,20 +107,20 @@ export default function HeroBanner({ banners }: { banners: Banner[] }) {
 
 function BannerCard({ banner }: { banner: Banner }) {
     return (
-        <div className="relative rounded-2xl bg-gradient-to-r from-[#FFAF03] to-[#CC3939] p-4 overflow-hidden h-full min-h-[160px] flex flex-col justify-center">
+        <div className="relative rounded-2xl bg-gradient-to-r from-primary to-destructive p-4 overflow-hidden h-full min-h-[160px] flex flex-col justify-center">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-12 translate-x-12" />
             <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/5 rounded-full translate-y-6 -translate-x-6" />
             <div className="relative">
                 {banner.title && (
-                    <span className="inline-block bg-white/20 text-white text-xs font-bold px-2 py-0.5 rounded-full mb-1.5">
+                    <span className="inline-block bg-white/20 text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full mb-1.5">
                         {banner.title}
                     </span>
                 )}
-                <h2 className="text-[#47240F] font-bold text-lg leading-tight">
+                <h2 className="text-primary-foreground font-bold text-lg leading-tight">
                     {banner.headline}
                 </h2>
                 {banner.subtitle && (
-                    <p className="text-[#47240F]/70 text-sm mt-1">{banner.subtitle}</p>
+                    <p className="text-primary-foreground/70 text-sm mt-1">{banner.subtitle}</p>
                 )}
                 {(banner.mediaUrl && banner.mediaType === "video") && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 w-20 h-20 rounded-lg overflow-hidden">

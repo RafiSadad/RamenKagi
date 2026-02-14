@@ -84,14 +84,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                     onSuccess: async () => {
                         toast.success(
                             "🎉 Pembayaran berhasil! Kami sedang meracik kaldu spesial untuk Anda~",
-                            {
-                                duration: 4000,
-                                style: {
-                                    background: "#1a1410",
-                                    color: "#FFF9EC",
-                                    border: "1px solid rgba(255,175,3,0.3)",
-                                },
-                            }
+                            { duration: 4000 }
                         );
                         await submitDirectOrder(orderId, "paid");
                     },
@@ -158,8 +151,8 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             }}
             className="mt-4 space-y-3"
         >
-            <div className="h-px bg-[#FFF9EC]/10" />
-            <h3 className="text-[#FFF9EC] font-bold text-sm">📝 Detail Pesanan</h3>
+            <div className="h-px bg-border" />
+            <h3 className="text-card-foreground font-bold text-sm">📝 Detail Pesanan</h3>
 
             {/* Name */}
             <input
@@ -167,7 +160,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 placeholder="Nama kamu, Teman Kagi"
                 value={form.customerName}
                 onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                className="w-full bg-[#FFF9EC]/[0.06] border border-[#FFF9EC]/10 rounded-xl px-4 py-2.5 text-[#FFF9EC] text-sm placeholder:text-[#FFF9EC]/30 focus:outline-none focus:border-[#FFAF03]/50 transition-colors"
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             />
 
             {/* Takeaway toggle */}
@@ -175,9 +168,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 <button
                     type="button"
                     onClick={() => setForm({ ...form, isTakeaway: false })}
-                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${!form.isTakeaway
-                        ? "bg-[#FFAF03] text-[#47240F]"
-                        : "bg-[#FFF9EC]/[0.06] text-[#FFF9EC]/50 border border-[#FFF9EC]/10"
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${!form.isTakeaway
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-input text-muted-foreground border border-border"
                         }`}
                 >
                     🪑 Dine In
@@ -185,9 +178,9 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 <button
                     type="button"
                     onClick={() => setForm({ ...form, isTakeaway: true, tableNumber: "" })}
-                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${form.isTakeaway
-                        ? "bg-[#FFAF03] text-[#47240F]"
-                        : "bg-[#FFF9EC]/[0.06] text-[#FFF9EC]/50 border border-[#FFF9EC]/10"
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${form.isTakeaway
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-input text-muted-foreground border border-border"
                         }`}
                 >
                     🥡 Takeaway
@@ -206,7 +199,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                         placeholder="Nomor meja (contoh: 5)"
                         value={form.tableNumber}
                         onChange={(e) => setForm({ ...form, tableNumber: e.target.value })}
-                        className="w-full bg-[#FFF9EC]/[0.06] border border-[#FFF9EC]/10 rounded-xl px-4 py-2.5 text-[#FFF9EC] text-sm placeholder:text-[#FFF9EC]/30 focus:outline-none focus:border-[#FFAF03]/50 transition-colors"
+                        className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
                     />
                 </motion.div>
             )}
@@ -217,7 +210,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 rows={2}
-                className="w-full bg-[#FFF9EC]/[0.06] border border-[#FFF9EC]/10 rounded-xl px-4 py-2.5 text-[#FFF9EC] text-sm placeholder:text-[#FFF9EC]/30 focus:outline-none focus:border-[#FFAF03]/50 transition-colors resize-none"
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors resize-none"
             />
 
             {/* Pay Button */}
@@ -225,7 +218,7 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 whileTap={{ scale: 0.97 }}
                 type="submit"
                 disabled={loading || items.length === 0}
-                className="w-full bg-gradient-to-r from-[#FFAF03] to-[#CC3939] hover:from-[#e09e03] hover:to-[#b33131] disabled:opacity-40 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#FFAF03]/20"
+                className="w-full bg-gradient-to-r from-primary to-destructive hover:from-primary/90 hover:to-destructive/90 disabled:opacity-40 text-primary-foreground font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
                 {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -237,10 +230,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 )}
             </motion.button>
 
-            {/* Midtrans badge */}
-            <p className="text-center text-[#FFF9EC]/20 text-[10px]">
-                <Send className="w-3 h-3 inline mr-1" />
-                Pembayaran diproses oleh Midtrans
+            {/* Trust: Midtrans + security */}
+            <p className="text-center text-muted-foreground text-[10px] flex items-center justify-center gap-1.5 flex-wrap">
+                <Send className="w-3 h-3 shrink-0" />
+                Pembayaran aman diproses oleh Midtrans
             </p>
         </form>
     );

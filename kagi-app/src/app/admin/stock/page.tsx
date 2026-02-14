@@ -1,7 +1,7 @@
 import { getMenuItems, getCategories } from "@/lib/sanity";
 import { getAllMenuStock } from "@/lib/menu-stock";
 import { syncMenuStockFromSanity } from "../actions";
-import type { MenuItem } from "@/types/menu";
+import type { MenuItem, Category } from "@/types/menu";
 import StockTable from "./StockTable";
 
 export default async function AdminStockPage() {
@@ -11,12 +11,12 @@ export default async function AdminStockPage() {
         getAllMenuStock(),
     ]);
     const menuList: MenuItem[] = menuItems ?? [];
-    const categoryList = categories ?? [];
+    const categoryList: Category[] = categories ?? [];
     const categoryOrderMap = new Map(
-        categoryList.map((c) => [c.slug, c.order])
+        categoryList.map((c: Category) => [c.slug, c.order])
     );
     const categoryTitleMap = new Map(
-        categoryList.map((c) => [c.slug, c.title])
+        categoryList.map((c: Category) => [c.slug, c.title])
     );
 
     const stockSet = new Set(stockRows.map((r) => r.menu_id));

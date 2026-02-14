@@ -1,0 +1,42 @@
+---
+description: Frontend design standards — avoid generic "AI slop"; aim for distinctive, context-specific aesthetics
+globs: kagi-app/**/*.{tsx,jsx,css,scss}
+alwaysApply: false
+---
+
+# Frontend Aesthetics
+
+Make creative, distinctive frontends that surprise and delight. Avoid converging on generic, "on distribution" outputs.
+
+## Typography
+
+- **Avoid**: Inter, Roboto, Arial, system-ui, Space Grotesk (overused).
+- **Prefer**: Beautiful, unique, interesting fonts that fit the product (e.g. ramen/restaurant: warm, editorial, or Japanese-inspired type; consider Google Fonts like Literata, Fraunces, Noto Serif JP, Zen Kaku Gothic, or display faces that match the brand).
+- Define in `layout.tsx` with `next/font` and expose via CSS variable (e.g. `--font-display`, `--font-body`).
+
+## Color & Theme
+
+- **Commit to a cohesive aesthetic.** Use CSS variables in `globals.css` for consistency.
+- **Dominant colors + sharp accents** — avoid timid, evenly-distributed palettes.
+- Draw from IDE themes, cultural aesthetics, or brand (e.g. ramen: warm browns, gold/amber, deep red, cream).
+- **Avoid**: Purple gradients on white, generic "AI" palettes.
+
+## Motion
+
+- **CSS-first** for HTML/static effects (transitions, hover, focus).
+- **Framer Motion** (already in project) for React: page load, staggered reveals (`staggerChildren`, `animation-delay`), high-impact moments.
+- One well-orchestrated page load with staggered reveals creates more delight than many scattered micro-interactions.
+
+## Backgrounds
+
+- Create **atmosphere and depth** — avoid flat solid fills by default.
+- Use layered CSS gradients, subtle geometric patterns, or contextual effects that match the aesthetic (e.g. warm grain, soft radial glow, subtle stripes).
+
+## Avoid
+
+- Overused font families (Inter, Roboto, Arial, Space Grotesk).
+- Clichéd schemes (purple gradients on white).
+- Predictable layouts and cookie-cutter component patterns.
+- Design that lacks context-specific character (e.g. ramen app should feel warm, appetizing, culturally coherent).
+
+Think outside the box; vary themes, fonts, and aesthetics per context rather than reusing the same safe choices.

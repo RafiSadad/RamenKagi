@@ -42,7 +42,7 @@ export default function UpsellBanner({
 
     return (
         <div className="mt-4 mb-2">
-            <p className="text-[#FFF9EC]/60 text-xs font-semibold uppercase tracking-wider mb-2">
+            <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wider mb-2">
                 🔥 Tambah ini juga, Teman Kagi?
             </p>
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
@@ -52,29 +52,22 @@ export default function UpsellBanner({
                         whileTap={{ scale: 0.95 }}
                         onClick={() => {
                             addItem(item);
-                            toast.success(`${item.name} ditambahkan!`, {
-                                duration: 1500,
-                                style: {
-                                    background: "#1a1410",
-                                    color: "#FFF9EC",
-                                    border: "1px solid rgba(255,249,236,0.1)",
-                                },
-                            });
+                            toast.success(`${item.name} ditambahkan!`, { duration: 1500 });
                         }}
-                        className="flex-shrink-0 flex items-center gap-2 bg-[#FFF9EC]/[0.04] border border-[#FFF9EC]/10 rounded-xl px-3 py-2 hover:border-[#FFAF03]/30 transition-all"
+                        className="flex-shrink-0 flex items-center gap-2 bg-foreground/[0.04] border border-border rounded-xl px-3 py-2 hover:border-primary/30 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                         <span className="text-lg">
                             {getIcon(item.category)}
                         </span>
                         <div className="text-left">
-                            <p className="text-[#FFF9EC] text-xs font-semibold whitespace-nowrap">
+                            <p className="text-card-foreground text-xs font-semibold whitespace-nowrap">
                                 {item.name}
                             </p>
-                            <p className="text-[#FFAF03] text-xs font-bold">
+                            <p className="text-primary text-xs font-bold">
                                 +{formatRupiah(getEffectivePrice(item))}
                             </p>
                         </div>
-                        <Plus className="w-4 h-4 text-[#FFAF03] ml-1" />
+                        <Plus className="w-4 h-4 text-primary ml-1" />
                     </motion.button>
                 ))}
             </div>

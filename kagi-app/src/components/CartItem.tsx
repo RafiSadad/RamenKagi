@@ -35,24 +35,24 @@ export default function CartItem({ item }: CartItemProps) {
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 20 }}
-            className="flex items-center gap-3 py-3 border-b border-[#FFF9EC]/10"
+            className="flex items-center gap-3 py-3 border-b border-border"
         >
             {/* Emoji icon */}
-            <div className="w-12 h-12 rounded-xl bg-[#FFF9EC]/10 flex items-center justify-center text-2xl flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-foreground/10 flex items-center justify-center text-2xl flex-shrink-0">
                 {emoji}
             </div>
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-                <h4 className="text-[#FFF9EC] text-sm font-semibold truncate">
+                <h4 className="text-card-foreground text-sm font-semibold truncate">
                     {item.menuItem.name}
                 </h4>
                 {item.selectedToppings && item.selectedToppings.length > 0 && (
-                    <p className="text-[#FFF9EC]/40 text-xs truncate">
+                    <p className="text-muted-foreground text-xs truncate">
                         +{item.selectedToppings.map((t) => t.name).join(", ")}
                     </p>
                 )}
-                <p className="text-[#FFAF03] text-sm font-bold mt-0.5">
+                <p className="text-primary text-sm font-bold mt-0.5">
                     {formatRupiah(itemTotal)}
                 </p>
             </div>
@@ -66,15 +66,15 @@ export default function CartItem({ item }: CartItemProps) {
                             ? removeItem(item.menuItem._id)
                             : updateQuantity(item.menuItem._id, item.quantity - 1)
                     }
-                    className="w-7 h-7 rounded-lg bg-[#FFF9EC]/10 flex items-center justify-center hover:bg-[#CC3939]/20 transition-colors"
+                    className="w-7 h-7 rounded-lg bg-foreground/10 flex items-center justify-center hover:bg-destructive/20 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                     {item.quantity <= 1 ? (
-                        <Trash2 className="w-3.5 h-3.5 text-[#CC3939]" />
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
                     ) : (
-                        <Minus className="w-3.5 h-3.5 text-[#FFF9EC]/70" />
+                        <Minus className="w-3.5 h-3.5 text-foreground/70" />
                     )}
                 </motion.button>
-                <span className="text-[#FFF9EC] font-semibold text-sm w-6 text-center">
+                <span className="text-card-foreground font-semibold text-sm w-6 text-center">
                     {item.quantity}
                 </span>
                 <motion.button
@@ -82,9 +82,9 @@ export default function CartItem({ item }: CartItemProps) {
                     onClick={() =>
                         updateQuantity(item.menuItem._id, item.quantity + 1)
                     }
-                    className="w-7 h-7 rounded-lg bg-[#FFAF03]/20 flex items-center justify-center hover:bg-[#FFAF03]/30 transition-colors"
+                    className="w-7 h-7 rounded-lg bg-primary/20 flex items-center justify-center hover:bg-primary/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                    <Plus className="w-3.5 h-3.5 text-[#FFAF03]" />
+                    <Plus className="w-3.5 h-3.5 text-primary" />
                 </motion.button>
             </div>
         </motion.div>

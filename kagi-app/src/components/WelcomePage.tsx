@@ -27,9 +27,9 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                 initial={{ opacity: 1 }}
                 exit={{ opacity: 0, scale: 1.05 }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
-                className="fixed inset-0 z-[100] flex flex-col items-center justify-end bg-[#0a1520] overflow-hidden"
+                className="fixed inset-0 z-[100] flex flex-col items-center justify-end bg-background overflow-hidden"
             >
-                {/* Background: Cloudinary media or default ambient */}
+                {/* Background: Cloudinary media or default ambient (brand brown gradient) */}
                 <div className="absolute inset-0">
                     {bgUrl ? (
                         <>
@@ -49,18 +49,18 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
                             )}
-                            <div className="absolute inset-0 bg-[#0a1520]/70 z-10" />
+                            <div className="absolute inset-0 bg-background/70 z-10" />
                         </>
                     ) : (
                         <>
-                            <div className="absolute inset-0 bg-gradient-to-b from-[#0a1520]/40 via-[#0a1520]/60 to-[#0a1520]/95 z-10" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-card/80 to-background z-10" />
                             <motion.div
                                 animate={{
                                     scale: [1, 1.2, 1],
                                     opacity: [0.15, 0.25, 0.15],
                                 }}
                                 transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#FFAF03]/20 blur-[120px]"
+                                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/20 blur-[120px]"
                             />
                             <motion.div
                                 animate={{
@@ -68,7 +68,7 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                                     opacity: [0.1, 0.2, 0.1],
                                 }}
                                 transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute bottom-1/3 right-0 w-[400px] h-[400px] rounded-full bg-[#CC3939]/15 blur-[100px]"
+                                className="absolute bottom-1/3 right-0 w-[400px] h-[400px] rounded-full bg-destructive/15 blur-[100px]"
                             />
                         </>
                     )}
@@ -107,21 +107,21 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                         transition={{ duration: 0.7, delay: 0.5 }}
                         className="text-center mb-4"
                     >
-                        <h1 className="text-3xl md:text-4xl font-bold text-[#FFF9EC] leading-tight tracking-tight">
+                        <h1 className="text-3xl md:text-4xl font-bold text-foreground leading-tight tracking-tight font-display">
                             {title.includes("Kagi Ramen") ? (
                                 <>
                                     {title.replace("Kagi Ramen", "").trim()}{" "}
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAF03] to-[#e08a03]">
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-600">
                                         Kagi Ramen
                                     </span>
                                 </>
                             ) : (
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFF9EC] via-[#FFAF03] to-[#e08a03]">
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-foreground via-primary to-orange-600">
                                     {title}
                                 </span>
                             )}
                         </h1>
-                        <p className="text-[#FFF9EC]/50 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
+                        <p className="text-foreground/50 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
                             {subtitle}
                         </p>
                     </motion.div>
@@ -138,14 +138,14 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={onEnter}
-                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#FFAF03] to-[#e08a03] text-[#47240F] font-bold text-lg shadow-xl shadow-[#FFAF03]/25 transition-all hover:shadow-2xl hover:shadow-[#FFAF03]/30 active:shadow-lg"
+                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-primary to-orange-600 text-primary-foreground font-bold text-lg shadow-xl shadow-primary/25 transition-all hover:shadow-2xl hover:shadow-primary/30 active:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                         {ctaText} 🍜
                     </motion.button>
                 </motion.div>
 
                 {/* Bottom decorative line */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#FFAF03]/30 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
             </motion.div>
         </AnimatePresence>
     );

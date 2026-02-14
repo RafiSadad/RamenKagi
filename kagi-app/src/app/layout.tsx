@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
-import { Outfit } from "next/font/google";
+import { Literata, DM_Sans } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import SmoothScroll from "@/components/SmoothScroll";
 import Script from "next/script";
 import "./globals.css";
 
-const outfit = Outfit({
+/* Buku menu: serif editorial untuk judul/nama hidangan, sans bersih untuk body */
+const literata = Literata({
   subsets: ["latin"],
-  variable: "--font-outfit",
+  variable: "--font-literata",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  variable: "--font-dm-sans",
 });
 
 export const metadata: Metadata = {
@@ -33,7 +39,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body
-        className={`${outfit.variable} font-sans antialiased bg-[#111111] text-white`}
+        className={`${literata.variable} ${dmSans.variable} font-sans antialiased bg-background text-foreground`}
       >
         <SmoothScroll>
           <main className="min-h-screen">{children}</main>
