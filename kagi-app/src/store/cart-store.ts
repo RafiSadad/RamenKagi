@@ -2,11 +2,11 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CartItem, MenuItem, Topping, getEffectivePrice } from "@/types/menu";
+import { CartItem, MenuItem, getEffectivePrice } from "@/types/menu";
 
 interface CartStore {
     items: CartItem[];
-    addItem: (menuItem: MenuItem, quantity?: number, toppings?: Topping[]) => void;
+    addItem: (menuItem: MenuItem, quantity?: number) => void;
     removeItem: (itemId: string) => void;
     updateQuantity: (itemId: string, quantity: number) => void;
     clearCart: () => void;
@@ -19,7 +19,7 @@ export const useCartStore = create<CartStore>()(
         (set, get) => ({
             items: [],
 
-            addItem: (menuItem, quantity = 1, toppings = []) => {
+            addItem: (menuItem, quantity = 1) => {
                 const { items } = get();
                 const existingIndex = items.findIndex(
                     (item) => item.menuItem._id === menuItem._id
@@ -31,10 +31,7 @@ export const useCartStore = create<CartStore>()(
                     set({ items: updated });
                 } else {
                     set({
-                        items: [
-                            ...items,
-                            { menuItem, quantity, selectedToppings: toppings },
-                        ],
+                        items: [...items, { menuItem, quantity }],
                     });
                 }
             },
@@ -57,11 +54,11 @@ export const useCartStore = create<CartStore>()(
             clearCart: () => set({ items: [] }),
 
             getTotalPrice: () => {
-                return get().items.reduce((total, item) => {
-                    const toppingsPrice =
-                        item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0;
-                    return total + (getEffectivePrice(item.menuItem) + toppingsPrice) * item.quantity;
-                }, 0);
+                return get().items.reduce(
+                    (total, item) =>
+                        total + getEffectivePrice(item.menuItem) * item.quantity,
+                    0
+                );
             },
 
             getTotalItems: () => {

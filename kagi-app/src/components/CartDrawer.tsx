@@ -83,7 +83,10 @@ export default function CartDrawer({
                                 />
 
                                 {/* Checkout Form */}
-                                <CheckoutForm onSuccess={() => onOpenChange(false)} />
+                                <CheckoutForm
+                                    menuItems={menuItems}
+                                    onSuccess={() => onOpenChange(false)}
+                                />
                             </>
                         )}
                     </div>

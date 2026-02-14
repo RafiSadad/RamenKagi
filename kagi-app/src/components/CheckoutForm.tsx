@@ -8,13 +8,17 @@ import { formatRupiah } from "@/lib/utils";
 import { getEffectivePrice } from "@/types/menu";
 import { submitOrder } from "@/app/actions";
 import { toast } from "sonner";
+import { getSuggestedUpsell } from "@/lib/upsell-scoring";
+import UpsellCheckoutModal from "./UpsellCheckoutModal";
+import type { MenuItem } from "@/types/menu";
 
 interface CheckoutFormProps {
     onSuccess: () => void;
+    menuItems: MenuItem[];
 }
 
-export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
-    const { items, getTotalPrice, clearCart } = useCartStore();
+export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps) {
+    const { items, getTotalPrice, clearCart, addItem } = useCartStore();
     const [form, setForm] = useState({
         customerName: "",
         tableNumber: "",
@@ -22,6 +26,10 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         notes: "",
     });
     const [loading, setLoading] = useState(false);
+    const [upsellModal, setUpsellModal] = useState<{
+        item: MenuItem;
+        copy: string;
+    } | null>(null);
 
     const handlePayment = async () => {
         if (!form.customerName.trim()) {
@@ -40,15 +48,11 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             const totalPrice = getTotalPrice();
 
             // Prepare items for Midtrans (use effective price after discount)
-            const orderItems = items.map((item) => {
-                const toppingsPrice =
-                    item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0;
-                return {
-                    name: item.menuItem.name,
-                    price: getEffectivePrice(item.menuItem) + toppingsPrice,
-                    quantity: item.quantity,
-                };
-            });
+            const orderItems = items.map((item) => ({
+                name: item.menuItem.name,
+                price: getEffectivePrice(item.menuItem),
+                quantity: item.quantity,
+            }));
 
             // Request payment token from backend
             const paymentRes = await fetch("/api/payment", {
@@ -143,14 +147,54 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
         }
     };
 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.customerName.trim()) {
+            toast.error("Masukkan nama kamu ya, Teman Kagi!");
+            return;
+        }
+        if (!form.isTakeaway && !form.tableNumber.trim()) {
+            toast.error("Masukkan nomor meja!");
+            return;
+        }
+        const suggestion = getSuggestedUpsell(items, menuItems);
+        if (suggestion.suggestedItem && suggestion.copy) {
+            setUpsellModal({ item: suggestion.suggestedItem, copy: suggestion.copy });
+            return;
+        }
+        handlePayment();
+    };
+
+    const handleAddAndPay = () => {
+        if (upsellModal) {
+            addItem(upsellModal.item);
+            toast.success(`${upsellModal.item.name} ditambahkan!`, { duration: 1500 });
+            setUpsellModal(null);
+            handlePayment();
+        }
+    };
+
+    const handleSkipAndPay = () => {
+        setUpsellModal(null);
+        handlePayment();
+    };
+
     return (
-        <form
-            onSubmit={(e) => {
-                e.preventDefault();
-                handlePayment();
-            }}
-            className="mt-4 space-y-3"
-        >
+        <>
+            {upsellModal && (
+                <UpsellCheckoutModal
+                    open
+                    suggestedItem={upsellModal.item}
+                    copy={upsellModal.copy}
+                    onAddAndPay={handleAddAndPay}
+                    onSkipAndPay={handleSkipAndPay}
+                    onClose={() => setUpsellModal(null)}
+                />
+            )}
+            <form
+                onSubmit={handleSubmit}
+                className="mt-4 space-y-3"
+            >
             <div className="h-px bg-border" />
             <h3 className="text-card-foreground font-bold text-sm">📝 Detail Pesanan</h3>
 
@@ -236,5 +280,6 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
                 Pembayaran aman diproses oleh Midtrans
             </p>
         </form>
+        </>
     );
 }

@@ -32,11 +32,6 @@ export interface Category {
   order: number;
 }
 
-export interface Topping {
-  name: string;
-  price: number;
-}
-
 export interface MenuItem {
   _id: string;
   name: string;
@@ -52,9 +47,12 @@ export interface MenuItem {
   price: number;
   description: string;
   category: string; // category slug
+  /** Untuk Smart Checkout Upsell (scoring keranjang). */
+  flavor_category?: "spicy" | "savory" | "sweet" | "neutral" | null;
+  product_type?: "main_dish" | "side_dish" | "beverage" | "dessert" | null;
+  flavor_weight?: number | null; // 1–3, default 1
   isPopular: boolean;
   isUpsell: boolean;
-  toppings?: Topping[];
   /** From Supabase menu_stock; undefined = no row (unlimited) */
   stock?: number;
   /** Diskon persen (0–100). Opsional. */
@@ -97,7 +95,6 @@ export function getEffectivePrice(item: MenuItem): number {
 export interface CartItem {
   menuItem: MenuItem;
   quantity: number;
-  selectedToppings?: Topping[];
   notes?: string;
 }
 

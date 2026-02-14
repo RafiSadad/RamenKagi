@@ -57,6 +57,45 @@ export const menuItem = defineType({
             to: [{ type: 'category' }],
             validation: (rule) => rule.required(),
         }),
+        // Upsell & profil rasa (untuk Smart Checkout Upsell Engine)
+        defineField({
+            name: 'flavor_category',
+            title: 'Profil Rasa',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Pedas', value: 'spicy' },
+                    { title: 'Gurih / Asin', value: 'savory' },
+                    { title: 'Manis', value: 'sweet' },
+                    { title: 'Netral', value: 'neutral' },
+                ],
+                layout: 'radio',
+            },
+            description: 'Untuk logic upsell checkout (mitigasi pedas/gurih, pairing).',
+        }),
+        defineField({
+            name: 'product_type',
+            title: 'Tipe Produk',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Makanan Utama', value: 'main_dish' },
+                    { title: 'Side Dish', value: 'side_dish' },
+                    { title: 'Minuman', value: 'beverage' },
+                    { title: 'Dessert', value: 'dessert' },
+                ],
+                layout: 'radio',
+            },
+            description: 'Untuk scoring keranjang (minuman vs makanan utama vs side/dessert).',
+        }),
+        defineField({
+            name: 'flavor_weight',
+            title: 'Bobot rasa (1–3)',
+            type: 'number',
+            initialValue: 1,
+            validation: (rule) => rule.min(1).max(3),
+            description: 'Intensitas rasa untuk kalkulasi skor. Default 1.',
+        }),
         defineField({
             name: 'isPopular',
             title: 'Popular?',
@@ -68,39 +107,6 @@ export const menuItem = defineType({
             title: 'Upsell?',
             type: 'boolean',
             initialValue: false,
-        }),
-        defineField({
-            name: 'toppings',
-            title: 'Toppings',
-            type: 'array',
-            of: [
-                {
-                    type: 'object',
-                    fields: [
-                        defineField({
-                            name: 'name',
-                            title: 'Topping Name',
-                            type: 'string',
-                            validation: (rule) => rule.required(),
-                        }),
-                        defineField({
-                            name: 'price',
-                            title: 'Extra Price (Rp)',
-                            type: 'number',
-                            validation: (rule) => rule.required().min(0),
-                        }),
-                    ],
-                    preview: {
-                        select: { title: 'name', subtitle: 'price' },
-                        prepare({ title, subtitle }) {
-                            return {
-                                title: title || 'Topping',
-                                subtitle: subtitle ? `Rp ${subtitle.toLocaleString('id-ID')}` : '',
-                            }
-                        },
-                    },
-                },
-            ],
         }),
         defineField({
             name: 'discountPercent',
@@ -147,11 +153,23 @@ export const menuItem = defineType({
         }),
     ],
     preview: {
-        select: { title: 'name', subtitle: 'price', mediaUrl: 'mediaUrl', mediaType: 'mediaType' },
-        prepare({ title, subtitle, mediaUrl, mediaType }) {
+        select: {
+            title: 'name',
+            price: 'price',
+            mediaUrl: 'mediaUrl',
+            mediaType: 'mediaType',
+            product_type: 'product_type',
+            flavor_category: 'flavor_category',
+        },
+        prepare({ title, price, mediaUrl, mediaType, product_type, flavor_category }) {
+            const priceStr = price != null ? `Rp ${price.toLocaleString('id-ID')}` : '';
+            const meta: string[] = [];
+            if (product_type) meta.push(product_type);
+            if (flavor_category) meta.push(flavor_category);
+            const subtitle = meta.length > 0 ? [priceStr, meta.join(' · ')].filter(Boolean).join(' — ') : priceStr;
             return {
                 title: title || 'Untitled',
-                subtitle: subtitle ? `Rp ${subtitle.toLocaleString('id-ID')}` : '',
+                subtitle: subtitle || undefined,
                 media: mediaType === 'image' && mediaUrl ? mediaUrl : undefined,
             }
         },

@@ -21,11 +21,6 @@ export const MOCK_MENU_ITEMS: MenuItem[] = [
         category: "kagi-signature",
         isPopular: true,
         isUpsell: false,
-        toppings: [
-            { name: "Extra Beef Slice", price: 31250 },
-            { name: "Extra Ajitama", price: 10000 },
-            { name: "Extra Saikoro", price: 31250 },
-        ],
     },
     {
         _id: "sig-2",

@@ -25,7 +25,8 @@ export async function getMenuItems() {
             price, description,
             discountPercent, discountAmount, discountLabel, discountStart, discountEnd,
             "category": category->slug.current,
-            isPopular, isUpsell, toppings
+            flavor_category, product_type, flavor_weight,
+            isPopular, isUpsell
         }`
     );
 }

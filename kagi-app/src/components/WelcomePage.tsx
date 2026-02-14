@@ -48,7 +48,7 @@ export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
                                     className="absolute inset-0 w-full h-full object-cover"
                                 />
                             )}
-                            <div className="absolute inset-0 bg-black/35 z-10" />
+                            <div className="absolute inset-0 bg-black/15 z-10" />
                         </>
                     ) : (
                         <>

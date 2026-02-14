@@ -52,18 +52,6 @@ export default {
     { name: 'category', title: 'Category', type: 'reference', to: [{ type: 'category' }] },
     { name: 'isPopular', title: 'Popular?', type: 'boolean', initialValue: false },
     { name: 'isUpsell', title: 'Upsell?', type: 'boolean', initialValue: false },
-    {
-      name: 'toppings',
-      title: 'Toppings',
-      type: 'array',
-      of: [{
-        type: 'object',
-        fields: [
-          { name: 'name', title: 'Topping Name', type: 'string' },
-          { name: 'price', title: 'Extra Price', type: 'number' },
-        ],
-      }],
-    },
   ],
 };
 ```
@@ -85,4 +73,4 @@ App sudah memakai data dari Sanity. Untuk mengisi data dummy ke Sanity sekali ja
    ```bash
    npm run seed:sanity
    ```
-   Ini akan membuat semua **kategori** dan **menu item** (nama, harga, deskripsi, kategori, popular/upsell, toppings) di Sanity. **Foto makanan** tidak di-upload oleh script — upload manual di Sanity Studio (field Image di setiap Menu Item).
+   Ini akan membuat semua **kategori** dan **menu item** (nama, harga, deskripsi, kategori, popular/upsell) di Sanity. **Foto makanan** tidak di-upload oleh script — upload manual di Sanity Studio (field Image di setiap Menu Item).

@@ -1,10 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatRupiah } from "@/lib/utils";
 import { CartItem as CartItemType, getEffectivePrice } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
+
+/** URL gambar menu: mediaUrl (image) > legacy image. */
+function getMenuItemImageUrl(item: CartItemType["menuItem"]): string | null {
+    if (item.mediaUrl && item.mediaType === "image") return item.mediaUrl;
+    if (item.image) return item.image;
+    return null;
+}
 
 interface CartItemProps {
     item: CartItemType;
@@ -22,12 +30,10 @@ const CATEGORY_EMOJI: Record<string, string> = {
 export default function CartItem({ item }: CartItemProps) {
     const { updateQuantity, removeItem } = useCartStore();
 
-    const itemTotal =
-        (getEffectivePrice(item.menuItem) +
-            (item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0)) *
-        item.quantity;
+    const itemTotal = getEffectivePrice(item.menuItem) * item.quantity;
 
     const emoji = CATEGORY_EMOJI[item.menuItem.category] || "🍜";
+    const imageUrl = getMenuItemImageUrl(item.menuItem);
 
     return (
         <motion.div
@@ -37,9 +43,19 @@ export default function CartItem({ item }: CartItemProps) {
             exit={{ opacity: 0, x: 20 }}
             className="flex items-center gap-3 py-3 border-b border-border"
         >
-            {/* Emoji icon */}
-            <div className="w-12 h-12 rounded-xl bg-foreground/10 flex items-center justify-center text-2xl flex-shrink-0">
-                {emoji}
+            {/* Gambar menu atau fallback emoji */}
+            <div className="relative w-12 h-12 rounded-xl bg-foreground/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {imageUrl ? (
+                    <Image
+                        src={imageUrl}
+                        alt={item.menuItem.name}
+                        fill
+                        className="object-cover"
+                        sizes="48px"
+                    />
+                ) : (
+                    <span className="text-2xl">{emoji}</span>
+                )}
             </div>
 
             {/* Info */}
@@ -47,11 +63,6 @@ export default function CartItem({ item }: CartItemProps) {
                 <h4 className="text-card-foreground text-sm font-semibold truncate">
                     {item.menuItem.name}
                 </h4>
-                {item.selectedToppings && item.selectedToppings.length > 0 && (
-                    <p className="text-muted-foreground text-xs truncate">
-                        +{item.selectedToppings.map((t) => t.name).join(", ")}
-                    </p>
-                )}
                 <p className="text-primary text-sm font-bold mt-0.5">
                     {formatRupiah(itemTotal)}
                 </p>

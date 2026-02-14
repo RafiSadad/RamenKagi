@@ -23,7 +23,6 @@ export async function submitOrder(order: Order) {
                     name: item.menuItem.name,
                     price: getEffectivePrice(item.menuItem),
                     quantity: item.quantity,
-                    toppings: item.selectedToppings || [],
                 })),
                 total_price: order.totalPrice,
                 notes: order.notes,
@@ -50,13 +49,7 @@ export async function submitOrder(order: Order) {
             !telegramToken.includes("your_bot")
         ) {
             const itemsList = order.items
-                .map((item) => {
-                    const toppings =
-                        item.selectedToppings && item.selectedToppings.length > 0
-                            ? ` (+${item.selectedToppings.map((t) => t.name).join(", ")})`
-                            : "";
-                    return `• ${item.menuItem.name} x${item.quantity}${toppings}`;
-                })
+                .map((item) => `• ${item.menuItem.name} x${item.quantity}`)
                 .join("\n");
 
             const message = `🍜 *PESANAN BARU!*
