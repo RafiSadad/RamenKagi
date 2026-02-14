@@ -19,16 +19,24 @@ export const menuItem = defineType({
             validation: (rule) => rule.required(),
         }),
         defineField({
-            name: 'image',
-            title: 'Image',
-            type: 'image',
-            options: { hotspot: true },
+            name: 'mediaUrl',
+            title: 'Media URL (Cloudinary)',
+            type: 'url',
+            description: 'Link gambar atau video dari Cloudinary. Tidak di-upload ke Sanity (hemat limit). Rasio disarankan 1:1 atau 4:3. Lihat ASSETS_GUIDE.md.',
         }),
         defineField({
-            name: 'videoUrl',
-            title: 'Video URL (Cloudinary)',
+            name: 'mediaType',
+            title: 'Tipe Media',
             type: 'string',
-            description: 'Opsional. Paste URL video dari Cloudinary. Jika diisi, video ini dipakai sebagai media menu (autoplay).',
+            options: {
+                list: [
+                    { title: 'Gambar', value: 'image' },
+                    { title: 'Video', value: 'video' },
+                ],
+                layout: 'radio',
+            },
+            description: 'Pilih apakah mediaUrl berisi gambar atau video.',
+            hidden: ({ parent }) => !parent?.mediaUrl,
         }),
         defineField({
             name: 'price',
@@ -94,18 +102,57 @@ export const menuItem = defineType({
                 },
             ],
         }),
+        defineField({
+            name: 'discountPercent',
+            title: 'Diskon (%)',
+            type: 'number',
+            validation: (rule) => rule.min(0).max(100),
+            description: 'Diskon dalam persen (0–100). Isi salah satu: persen atau nominal.',
+        }),
+        defineField({
+            name: 'discountAmount',
+            title: 'Diskon (Rp)',
+            type: 'number',
+            validation: (rule) => rule.min(0),
+            description: 'Diskon nominal dalam Rupiah. Isi salah satu: persen atau nominal.',
+        }),
+        defineField({
+            name: 'discountLabel',
+            title: 'Label diskon',
+            type: 'string',
+            description: 'Contoh: "Promo 20%"',
+            hidden: ({ parent }) => !parent?.discountPercent && !parent?.discountAmount,
+        }),
+        defineField({
+            name: 'discountStart',
+            title: 'Mulai diskon (tanggal & jam)',
+            type: 'datetime',
+            description: 'Waktu mulai berlaku diskon. Kosongkan = langsung berlaku.',
+            hidden: ({ parent }) => !parent?.discountPercent && !parent?.discountAmount,
+        }),
+        defineField({
+            name: 'discountEnd',
+            title: 'Selesai diskon (tanggal & jam)',
+            type: 'datetime',
+            description: 'Waktu selesai berlaku diskon. Kosongkan = tidak ada batas.',
+            hidden: ({ parent }) => !parent?.discountPercent && !parent?.discountAmount,
+            validation: (rule) =>
+                rule.custom((discountEnd, context) => {
+                    const start = (context.document as { discountStart?: string })?.discountStart;
+                    if (start && discountEnd && new Date(discountEnd) < new Date(start)) {
+                        return 'Selesai diskon harus setelah mulai diskon';
+                    }
+                    return true;
+                }),
+        }),
     ],
     preview: {
-        select: {
-            title: 'name',
-            subtitle: 'price',
-            media: 'image',
-        },
-        prepare({ title, subtitle, media }) {
+        select: { title: 'name', subtitle: 'price', mediaUrl: 'mediaUrl', mediaType: 'mediaType' },
+        prepare({ title, subtitle, mediaUrl, mediaType }) {
             return {
                 title: title || 'Untitled',
                 subtitle: subtitle ? `Rp ${subtitle.toLocaleString('id-ID')}` : '',
-                media,
+                media: mediaType === 'image' && mediaUrl ? mediaUrl : undefined,
             }
         },
     },

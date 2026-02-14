@@ -128,7 +128,7 @@ async function seed() {
     console.log("  ✓", cat.name);
   }
 
-  console.log("\n🌱 Seeding menu items (foto upload manual di Sanity Studio)...");
+  console.log("\n🌱 Seeding menu items (isi Media URL Cloudinary di Sanity Studio jika perlu)...");
   for (let i = 0; i < items.length; i++) {
     const item = items[i];
     const slug = slugify(item.title);
@@ -181,7 +181,7 @@ async function seed() {
     console.log("  ✓", doc.headline.slice(0, 40) + (doc.headline.length > 40 ? "…" : ""));
   }
 
-  console.log("\n✅ Seed selesai. Buka Sanity Studio untuk upload foto / edit banner jika perlu.");
+  console.log("\n✅ Seed selesai. Buka Sanity Studio untuk isi Media URL (Cloudinary) jika perlu.");
 }
 
 seed().catch((err) => {

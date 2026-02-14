@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
-import { MenuItem } from "@/types/menu";
+import { MenuItem, getEffectivePrice, isDiscountActive } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
 
@@ -50,9 +50,27 @@ export default function MenuCard({ item, index }: MenuCardProps) {
             whileHover={{ y: -4 }}
             className="group relative bg-[#FFF9EC]/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden border border-[#FFF9EC]/[0.06] hover:border-[#FFAF03]/30 transition-all"
         >
-            {/* Media Area: video (Cloudinary) > image > placeholder */}
+            {/* Media: Cloudinary (mediaUrl+mediaType) > legacy videoUrl/image > placeholder */}
             <div className="relative h-36 bg-gradient-to-br from-[#47240F]/30 to-transparent overflow-hidden">
-                {item.videoUrl ? (
+                {item.mediaUrl && item.mediaType === "video" ? (
+                    <video
+                        src={item.mediaUrl}
+                        muted
+                        loop
+                        playsInline
+                        autoPlay
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        aria-label={item.name}
+                    />
+                ) : item.mediaUrl && item.mediaType === "image" ? (
+                    <Image
+                        src={item.mediaUrl}
+                        alt={item.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 768px) 50vw, 200px"
+                    />
+                ) : item.videoUrl ? (
                     <video
                         src={item.videoUrl}
                         muted
@@ -95,8 +113,26 @@ export default function MenuCard({ item, index }: MenuCardProps) {
                 )}
 
                 {/* Price tag */}
-                <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-[#FFF9EC] text-sm font-bold px-3 py-1 rounded-full">
-                    {formatRupiah(item.price)}
+                <div className="absolute bottom-2 left-2 flex flex-wrap items-center gap-1.5 bg-black/60 backdrop-blur-sm text-[#FFF9EC] text-sm font-bold px-3 py-1 rounded-full">
+                    {isDiscountActive(item) ? (
+                        <>
+                            <span className="line-through text-[#FFF9EC]/60">
+                                {formatRupiah(item.price)}
+                            </span>
+                            <span>{formatRupiah(getEffectivePrice(item))}</span>
+                            {item.discountLabel ? (
+                                <span className="text-[10px] font-semibold text-[#FFAF03]">
+                                    {item.discountLabel}
+                                </span>
+                            ) : (
+                                <span className="text-[10px] font-semibold text-[#FFAF03]">
+                                    Promo
+                                </span>
+                            )}
+                        </>
+                    ) : (
+                        formatRupiah(getEffectivePrice(item))
+                    )}
                 </div>
             </div>
 

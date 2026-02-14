@@ -7,18 +7,20 @@ import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import WelcomePage from "@/components/WelcomePage";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Category, MenuItem, Banner } from "@/types/menu";
+import type { Category, MenuItem, Banner, WelcomePage as WelcomePageData } from "@/types/menu";
 
 interface HomeClientProps {
   categories: Category[];
   menuItems: MenuItem[];
   banners: Banner[];
+  welcome: WelcomePageData | null;
 }
 
 export default function HomeClient({
   categories,
   menuItems,
   banners,
+  welcome,
 }: HomeClientProps) {
   const [cartOpen, setCartOpen] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
@@ -32,7 +34,7 @@ export default function HomeClient({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <WelcomePage onEnter={() => setShowWelcome(false)} />
+            <WelcomePage welcome={welcome} onEnter={() => setShowWelcome(false)} />
           </motion.div>
         )}
       </AnimatePresence>

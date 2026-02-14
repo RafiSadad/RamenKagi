@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Loader2, Send, CreditCard } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { formatRupiah } from "@/lib/utils";
+import { getEffectivePrice } from "@/types/menu";
 import { submitOrder } from "@/app/actions";
 import { toast } from "sonner";
 
@@ -38,13 +39,13 @@ export default function CheckoutForm({ onSuccess }: CheckoutFormProps) {
             const orderId = `KAGI-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
             const totalPrice = getTotalPrice();
 
-            // Prepare items for Midtrans
+            // Prepare items for Midtrans (use effective price after discount)
             const orderItems = items.map((item) => {
                 const toppingsPrice =
                     item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0;
                 return {
                     name: item.menuItem.name,
-                    price: item.menuItem.price + toppingsPrice,
+                    price: getEffectivePrice(item.menuItem) + toppingsPrice,
                     quantity: item.quantity,
                 };
             });

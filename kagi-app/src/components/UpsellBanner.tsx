@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
-import { Category, MenuItem } from "@/types/menu";
+import { Category, MenuItem, getEffectivePrice } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
 
@@ -71,7 +71,7 @@ export default function UpsellBanner({
                                 {item.name}
                             </p>
                             <p className="text-[#FFAF03] text-xs font-bold">
-                                +{formatRupiah(item.price)}
+                                +{formatRupiah(getEffectivePrice(item))}
                             </p>
                         </div>
                         <Plus className="w-4 h-4 text-[#FFAF03] ml-1" />

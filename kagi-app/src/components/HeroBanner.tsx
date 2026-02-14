@@ -122,10 +122,22 @@ function BannerCard({ banner }: { banner: Banner }) {
                 {banner.subtitle && (
                     <p className="text-[#47240F]/70 text-sm mt-1">{banner.subtitle}</p>
                 )}
-                {banner.image && (
+                {(banner.mediaUrl && banner.mediaType === "video") && (
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 w-20 h-20 rounded-lg overflow-hidden">
+                        <video
+                            src={banner.mediaUrl}
+                            muted
+                            loop
+                            playsInline
+                            autoPlay
+                            className="object-cover w-full h-full"
+                        />
+                    </div>
+                )}
+                {((banner.mediaUrl && banner.mediaType === "image") || banner.image) && (
                     <div className="absolute right-2 top-1/2 -translate-y-1/2 w-16 h-16 rounded-lg overflow-hidden">
                         <Image
-                            src={banner.image}
+                            src={(banner.mediaUrl && banner.mediaType === "image") ? banner.mediaUrl : banner.image!}
                             alt=""
                             width={64}
                             height={64}

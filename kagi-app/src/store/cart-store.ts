@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { CartItem, MenuItem, Topping } from "@/types/menu";
+import { CartItem, MenuItem, Topping, getEffectivePrice } from "@/types/menu";
 
 interface CartStore {
     items: CartItem[];
@@ -60,7 +60,7 @@ export const useCartStore = create<CartStore>()(
                 return get().items.reduce((total, item) => {
                     const toppingsPrice =
                         item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0;
-                    return total + (item.menuItem.price + toppingsPrice) * item.quantity;
+                    return total + (getEffectivePrice(item.menuItem) + toppingsPrice) * item.quantity;
                 }, 0);
             },
 

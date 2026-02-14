@@ -2,12 +2,24 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import type { WelcomePage as WelcomePageType } from "@/types/menu";
 
 interface WelcomePageProps {
+    welcome: WelcomePageType | null;
     onEnter: () => void;
 }
 
-export default function WelcomePage({ onEnter }: WelcomePageProps) {
+const DEFAULT_TITLE = "Welcome to Kagi Ramen";
+const DEFAULT_SUBTITLE = "Nikmati menu kami yang dibuat dengan penuh cinta dan cita rasa autentik Jepang.";
+const DEFAULT_CTA = "Lihat Menu";
+
+export default function WelcomePage({ welcome, onEnter }: WelcomePageProps) {
+    const title = welcome?.title?.trim() || DEFAULT_TITLE;
+    const subtitle = welcome?.subtitle?.trim() || DEFAULT_SUBTITLE;
+    const ctaText = welcome?.ctaText?.trim() || DEFAULT_CTA;
+    const bgUrl = welcome?.backgroundMediaUrl?.trim();
+    const bgType = welcome?.backgroundMediaType || "image";
+
     return (
         <AnimatePresence>
             <motion.div
@@ -17,28 +29,49 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                 transition={{ duration: 0.6, ease: "easeInOut" }}
                 className="fixed inset-0 z-[100] flex flex-col items-center justify-end bg-[#0a1520] overflow-hidden"
             >
-                {/* Ambient background */}
+                {/* Background: Cloudinary media or default ambient */}
                 <div className="absolute inset-0">
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-b from-[#0a1520]/40 via-[#0a1520]/60 to-[#0a1520]/95 z-10" />
-
-                    {/* Animated ambient circles */}
-                    <motion.div
-                        animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.15, 0.25, 0.15],
-                        }}
-                        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#FFAF03]/20 blur-[120px]"
-                    />
-                    <motion.div
-                        animate={{
-                            scale: [1.2, 1, 1.2],
-                            opacity: [0.1, 0.2, 0.1],
-                        }}
-                        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute bottom-1/3 right-0 w-[400px] h-[400px] rounded-full bg-[#CC3939]/15 blur-[100px]"
-                    />
+                    {bgUrl ? (
+                        <>
+                            {bgType === "video" ? (
+                                <video
+                                    src={bgUrl}
+                                    autoPlay
+                                    muted
+                                    loop
+                                    playsInline
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+                            ) : (
+                                <img
+                                    src={bgUrl}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                />
+                            )}
+                            <div className="absolute inset-0 bg-[#0a1520]/70 z-10" />
+                        </>
+                    ) : (
+                        <>
+                            <div className="absolute inset-0 bg-gradient-to-b from-[#0a1520]/40 via-[#0a1520]/60 to-[#0a1520]/95 z-10" />
+                            <motion.div
+                                animate={{
+                                    scale: [1, 1.2, 1],
+                                    opacity: [0.15, 0.25, 0.15],
+                                }}
+                                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-[#FFAF03]/20 blur-[120px]"
+                            />
+                            <motion.div
+                                animate={{
+                                    scale: [1.2, 1, 1.2],
+                                    opacity: [0.1, 0.2, 0.1],
+                                }}
+                                transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute bottom-1/3 right-0 w-[400px] h-[400px] rounded-full bg-[#CC3939]/15 blur-[100px]"
+                            />
+                        </>
+                    )}
 
                     {/* Japanese pattern overlay */}
                     <div className="absolute inset-0 opacity-[0.03] z-10"
@@ -67,7 +100,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                         />
                     </motion.div>
 
-                    {/* Tagline */}
+                    {/* Tagline — editable dari Sanity */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -75,13 +108,21 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                         className="text-center mb-4"
                     >
                         <h1 className="text-3xl md:text-4xl font-bold text-[#FFF9EC] leading-tight tracking-tight">
-                            Welcome to{" "}
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAF03] to-[#e08a03]">
-                                Kagi Ramen
-                            </span>
+                            {title.includes("Kagi Ramen") ? (
+                                <>
+                                    {title.replace("Kagi Ramen", "").trim()}{" "}
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFAF03] to-[#e08a03]">
+                                        Kagi Ramen
+                                    </span>
+                                </>
+                            ) : (
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FFF9EC] via-[#FFAF03] to-[#e08a03]">
+                                    {title}
+                                </span>
+                            )}
                         </h1>
                         <p className="text-[#FFF9EC]/50 text-sm mt-3 leading-relaxed max-w-xs mx-auto">
-                            Nikmati menu kami yang dibuat dengan penuh cinta dan cita rasa autentik Jepang.
+                            {subtitle}
                         </p>
                     </motion.div>
                 </div>
@@ -99,7 +140,7 @@ export default function WelcomePage({ onEnter }: WelcomePageProps) {
                         onClick={onEnter}
                         className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#FFAF03] to-[#e08a03] text-[#47240F] font-bold text-lg shadow-xl shadow-[#FFAF03]/25 transition-all hover:shadow-2xl hover:shadow-[#FFAF03]/30 active:shadow-lg"
                     >
-                        Lihat Menu 🍜
+                        {ctaText} 🍜
                     </motion.button>
                 </motion.div>
 

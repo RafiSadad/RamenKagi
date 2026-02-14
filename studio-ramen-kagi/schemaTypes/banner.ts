@@ -24,10 +24,24 @@ export const banner = defineType({
             type: 'string',
         }),
         defineField({
-            name: 'image',
-            title: 'Gambar (opsional)',
-            type: 'image',
-            options: { hotspot: true },
+            name: 'mediaUrl',
+            title: 'Media URL (Cloudinary)',
+            type: 'url',
+            description: 'Link gambar atau video dari Cloudinary. Tidak di-upload ke Sanity. Rasio disarankan 16:9 atau 2:1 untuk banner. Lihat ASSETS_GUIDE.md.',
+        }),
+        defineField({
+            name: 'mediaType',
+            title: 'Tipe Media',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Gambar', value: 'image' },
+                    { title: 'Video', value: 'video' },
+                ],
+                layout: 'radio',
+            },
+            description: 'Pilih apakah mediaUrl berisi gambar atau video.',
+            hidden: ({ parent }) => !parent?.mediaUrl,
         }),
         defineField({
             name: 'link',

@@ -1,6 +1,6 @@
 "use server";
 
-import { Order } from "@/types/menu";
+import { Order, getEffectivePrice } from "@/types/menu";
 import { decrementMenuStock } from "@/lib/menu-stock";
 
 // Submit order (saves to Supabase + sends Telegram notification)
@@ -21,7 +21,7 @@ export async function submitOrder(order: Order) {
                 is_takeaway: order.isTakeaway,
                 items: order.items.map((item) => ({
                     name: item.menuItem.name,
-                    price: item.menuItem.price,
+                    price: getEffectivePrice(item.menuItem),
                     quantity: item.quantity,
                     toppings: item.selectedToppings || [],
                 })),

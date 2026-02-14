@@ -19,11 +19,27 @@ export async function getMenuItems() {
     return sanityClient.fetch(
         `*[_type == "menuItem"] {
             _id, name, "slug": slug.current,
+            mediaUrl, mediaType,
             "image": image.asset->url,
             videoUrl,
             price, description,
+            discountPercent, discountAmount, discountLabel, discountStart, discountEnd,
             "category": category->slug.current,
             isPopular, isUpsell, toppings
+        }`
+    );
+}
+
+/** Halaman welcome (singleton). Satu dokumen saja. */
+export async function getWelcomePage() {
+    return sanityClient.fetch(
+        `*[_type == "welcomePage"][0] {
+            _id,
+            backgroundMediaUrl,
+            backgroundMediaType,
+            title,
+            subtitle,
+            ctaText
         }`
     );
 }
@@ -33,6 +49,7 @@ export async function getBanners() {
     return sanityClient.fetch(
         `*[_type == "banner"] | order(order asc, _createdAt asc)[0...3] {
             _id, title, headline, subtitle,
+            mediaUrl, mediaType,
             "image": image.asset->url,
             link, order
         }`

@@ -3,7 +3,7 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatRupiah } from "@/lib/utils";
-import { CartItem as CartItemType } from "@/types/menu";
+import { CartItem as CartItemType, getEffectivePrice } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
 
 interface CartItemProps {
@@ -23,7 +23,7 @@ export default function CartItem({ item }: CartItemProps) {
     const { updateQuantity, removeItem } = useCartStore();
 
     const itemTotal =
-        (item.menuItem.price +
+        (getEffectivePrice(item.menuItem) +
             (item.selectedToppings?.reduce((t, top) => t + top.price, 0) || 0)) *
         item.quantity;
 
