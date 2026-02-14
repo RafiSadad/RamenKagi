@@ -1,0 +1,136 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-outfit), system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+/* 
+ * Kagi Ramen Brand Palette:
+ * Bright Pearl: #FFF9EC (warm cream)
+ * Creamy Yellow: #FAFAD0 (card bg)
+ * Warm Dark Brown: #47240F (text)
+ * Chinese Yellow: #FFAF03 (CTA accent)
+ * Crimson Red: #CC3939 (spicy accent)
+ * Freeway Green: #335005 (halal indicator)
+ *
+ * Dark mode adaptation — dark charcoal base with brand accents
+ */
+
+:root {
+  --radius: 0.75rem;
+  --background: #0f0f0f;
+  --foreground: #FFF9EC;
+  --card: #1a1410;
+  --card-foreground: #FFF9EC;
+  --popover: #1a1410;
+  --popover-foreground: #FFF9EC;
+  --primary: #FFAF03;
+  --primary-foreground: #47240F;
+  --secondary: #231810;
+  --secondary-foreground: #FFF9EC;
+  --muted: #231810;
+  --muted-foreground: #a89080;
+  --accent: #231810;
+  --accent-foreground: #FFF9EC;
+  --destructive: #CC3939;
+  --border: rgba(255, 249, 236, 0.08);
+  --input: rgba(255, 249, 236, 0.08);
+  --ring: #FFAF03;
+  --chart-1: #FFAF03;
+  --chart-2: #CC3939;
+  --chart-3: #335005;
+  --chart-4: #FAFAD0;
+  --chart-5: #47240F;
+  --sidebar: #1a1410;
+  --sidebar-foreground: #FFF9EC;
+  --sidebar-primary: #FFAF03;
+  --sidebar-primary-foreground: #47240F;
+  --sidebar-accent: #231810;
+  --sidebar-accent-foreground: #FFF9EC;
+  --sidebar-border: rgba(255, 249, 236, 0.08);
+  --sidebar-ring: #FFAF03;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}

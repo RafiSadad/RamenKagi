@@ -1,0 +1,306 @@
+[
+    {
+        "_type": "menu",
+        "title": "Kuro Garikku",
+        "category": "Kagi Signature",
+        "price": 50000,
+        "description": "Ramen kuah kaldu sapi dengan black garlic dengan topping pah...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kagi Shoyu Saikoro",
+        "category": "Kagi Signature",
+        "price": 57500,
+        "description": "Ramen kuah kaldu sapi dengan shoyu special dan daging saikor...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Beef Miruku",
+        "category": "Kagi Signature",
+        "price": 61250,
+        "description": "Ramen Kuah Creamy Dengan Kuah Kaldu Dengan Smoke Beef...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Saikoro Miruku",
+        "category": "Kagi Signature",
+        "price": 57500,
+        "description": "Ramen kuah creamy gurih dengan potongan saikoro yang smoky...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kagi Toripaitan",
+        "category": "Kagi Signature",
+        "price": 47500,
+        "description": "Ramen kuah kaldu ayam di lengkapi topping paha ayam dan...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kagi Shoyu Beef",
+        "category": "Kagi Signature",
+        "price": 61250,
+        "description": "Ramen Kuah Kaldu Sapi Dengan Shoyu Special Dan Smoked Bee...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Chizu Beef",
+        "category": "Kagi Signature",
+        "price": 57500,
+        "description": "Ramen Kuah Keju Special Yang Gurih Creamy Dengan Smoked...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Truffle Dry Ramen",
+        "category": "Kagi Signature",
+        "price": 72500,
+        "description": "The fusion of european and japanese flavours",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Chizu Saikoro",
+        "category": "Kagi Signature",
+        "price": 55000,
+        "description": "Ramen Dengan Kuah Keju Special Yang Gurih Creamy Di Lengkapi...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Tori Gekikara",
+        "category": "Kagi Signature",
+        "price": 45000,
+        "description": "Dry ramen dengan saus jepang autentik yang manis-gurih....",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Saikoro Gekikara",
+        "category": "Kagi Signature",
+        "price": 50000,
+        "description": "Dry ramen dengan saus jepang autentik yang manis-gurih....",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Beef Teriyaki Don",
+        "category": "Kagi Donburi",
+        "price": 50000,
+        "description": "Nasi Dengan Topping Beef Teriyaki Dan Scramble Egg",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Chicken Teriyaki Don",
+        "category": "Kagi Donburi",
+        "price": 43750,
+        "description": "Nasi Dengan Topping Ayam Teriyaki Dan Scramble Egg",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Nanban Chicken Donburi",
+        "category": "Kagi Donburi",
+        "price": 43750,
+        "description": "Nasi Dengan Topping Chicken Crispy Di Balut Saus Pedas Mani...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Spicy Toripaitan",
+        "category": "Kagi Spicy Series",
+        "price": 52500,
+        "description": "Ramen Kuah Kaldu Ayam Kental Yang Pedas Gurih Dengan...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Saikoro Miruku Spicy",
+        "category": "Kagi Spicy Series",
+        "price": 67500,
+        "description": "Ramen Kuah Creamy Kental Bercampur Cabe Racikan Khas...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Chizu Beef Spicy",
+        "category": "Kagi Spicy Series",
+        "price": 65000,
+        "description": "Ramen Kuah Keju Gurih Dan Lembut Bercampur Rasa Pedas...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Chizu Saikoro Spicy",
+        "category": "Kagi Spicy Series",
+        "price": 67500,
+        "description": "Ramen Kuah Keju Yang Gurih Dan Lembut Bercampur Dengan Cab...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Beef Miruku Spicy",
+        "category": "Kagi Spicy Series",
+        "price": 65000,
+        "description": "Ramen Kuah Creamy Kental Bercampur Cabe Racikan Khas...",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Chicken Karaage",
+        "category": "Small Dishes",
+        "price": 31250,
+        "description": "Potongan Kecil Ayam Goreng Ala Jepang Yang Juicy Yang Crispy",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Karaage Mentai",
+        "category": "Small Dishes",
+        "price": 35000,
+        "description": "Potongan Kecil Ayam Goreng Ala Jepang Yang Juicy Dan Crispy D...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Gyoza",
+        "category": "Small Dishes",
+        "price": 35000,
+        "description": "Pangsit Ala Jepang Dengan Isian Daging Ayam Juicy Yang Di Steam",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kimchi Gyoza",
+        "category": "Small Dishes",
+        "price": 40000,
+        "description": "Pangsit Ala Jepang Dengan Isian Daging Ayam Di Padukan Denga...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Yakitori",
+        "category": "Small Dishes",
+        "price": 37500,
+        "description": "Sate Paha Ayam Dengan Bumbu Yakiniku",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Tamagoyaki",
+        "category": "Small Dishes",
+        "price": 25000,
+        "description": "Telur tebal dan lembut dengan rasa gurih manis",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kentang Sosis",
+        "category": "Small Dishes",
+        "price": 25000,
+        "description": "Kentang Goreng Yang Di Lengkapi Dengan Sosis Goreng",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Tomoro Koshi",
+        "category": "Small Dishes",
+        "price": 25000,
+        "description": "Jagung manis yang di bakar dengan saus special di lengkapi...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Topping Paha Ayam",
+        "category": "Additional",
+        "price": 18750,
+        "description": "Seporsi Topping Paha Ayam Juicy",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Beef Slice",
+        "category": "Additional",
+        "price": 31250,
+        "description": "Seporsi smoked beef",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Noodles Kagi",
+        "category": "Additional",
+        "price": 8750,
+        "description": "Seporsi Mie Tanpa Kuah",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Saikoro",
+        "category": "Additional",
+        "price": 31250,
+        "description": "Seporsi saikoro juicy",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Mini Katsu",
+        "category": "Additional",
+        "price": 12500,
+        "description": "potongan ayam crispy ukuran mini yang gurih dan renyah di setiap...",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Ajitama",
+        "category": "Additional",
+        "price": 10000,
+        "description": "Sebutir telur yang sudah di marinasi",
+        "hasPhoto": false
+    },
+    {
+        "_type": "menu",
+        "title": "Yakiniku Bento",
+        "category": "Kids Menu",
+        "price": 40000,
+        "description": "Sajian Bento Porsi Anak Dengan Beef Slice Bumbu Yakiniku Mani...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Katsu Bento",
+        "category": "Kids Menu",
+        "price": 30000,
+        "description": "Sajian Bento Dengan Nasi Porsi Anak Dengan Chicken Katsu Yan...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Toripop Bento",
+        "category": "Kids Menu",
+        "price": 30000,
+        "description": "Sajian Bento Anak Dengan Ayam Popcrorn Gurih Manis, Dilengka...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Kochizu Ramen",
+        "category": "Kids Menu",
+        "price": 36250,
+        "description": "Ramen Porsi Anak Dengan Kuah Keju Yang Gurih Dan...",
+        "hasPhoto": true
+    },
+    {
+        "_type": "menu",
+        "title": "Minitori Ramen",
+        "category": "Kids Menu",
+        "price": 31250,
+        "description": "Ramen Porsi Anak Dengan Kuah Toripaitan Yang Gurih Dan Kental...",
+        "hasPhoto": true
+    }
+]
