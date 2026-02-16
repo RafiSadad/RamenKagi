@@ -1,8 +1,11 @@
 import { getMenuItems, getCategories } from "@/lib/sanity";
-import { getAllMenuStock } from "@/lib/menu-stock";
+import { getAllMenuStock, isMenuStockConfigured } from "@/lib/menu-stock";
 import { syncMenuStockFromSanity } from "../actions";
 import type { MenuItem, Category } from "@/types/menu";
 import StockTable from "./StockTable";
+
+/** Selalu ambil data terbaru dari DB (no cache) agar edit stok tidak “balik” setelah refresh. */
+export const dynamic = "force-dynamic";
 
 export default async function AdminStockPage() {
     const [menuItems, categories, stockRows] = await Promise.all([
@@ -49,11 +52,18 @@ export default async function AdminStockPage() {
             return a.name.localeCompare(b.name);
         });
 
+    const dbOk = isMenuStockConfigured();
+
     return (
         <div>
             <h1 className="text-2xl font-semibold text-[#FFF9EC] mb-6">
                 Kelola Stok Menu
             </h1>
+            {!dbOk && (
+                <div className="mb-4 rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                    Database stok tidak terkoneksi (cek <code className="rounded bg-black/30 px-1">NEXT_PUBLIC_SUPABASE_URL</code> dan <code className="rounded bg-black/30 px-1">SUPABASE_SERVICE_ROLE_KEY</code>). Perubahan stok tidak akan tersimpan.
+                </div>
+            )}
             <StockTable rows={rows} />
         </div>
     );

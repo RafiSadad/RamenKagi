@@ -1,68 +1,51 @@
+import { Suspense } from "react";
 import {
     getOrdersForAdmin,
     getSalesStats,
     type AdminOrder,
 } from "@/lib/admin-orders";
 import { formatRupiah } from "@/lib/utils";
+import { getDateRangeFromParams, toDateInputValue } from "./date-range";
+import SalesRangePicker from "./SalesRangePicker";
 
-function getTodayStartEnd(): { from: Date; to: Date } {
-    const now = new Date();
-    const from = new Date(now);
-    from.setHours(0, 0, 0, 0);
-    const to = new Date(now);
-    to.setHours(23, 59, 59, 999);
-    return { from, to };
-}
+type PageProps = { searchParams: Promise<Record<string, string | undefined>> };
 
-function getWeekStartEnd(): { from: Date; to: Date } {
-    const now = new Date();
-    const to = new Date(now);
-    to.setHours(23, 59, 59, 999);
-    const from = new Date(now);
-    from.setDate(from.getDate() - 7);
-    from.setHours(0, 0, 0, 0);
-    return { from, to };
-}
+export default async function AdminSalesPage({ searchParams }: PageProps) {
+    const params = await searchParams;
+    const { from, to, label, preset } = getDateRangeFromParams(params);
 
-export default async function AdminSalesPage() {
-    const today = getTodayStartEnd();
-    const week = getWeekStartEnd();
+    const customFrom = params.from ?? toDateInputValue(from);
+    const customTo = params.to ?? toDateInputValue(to);
 
-    const [statsToday, statsWeek, recentOrders] = await Promise.all([
-        getSalesStats({ fromDate: today.from, toDate: today.to }),
-        getSalesStats({ fromDate: week.from, toDate: week.to }),
-        getOrdersForAdmin({ limit: 50 }),
+    const [stats, orders] = await Promise.all([
+        getSalesStats({ fromDate: from, toDate: to }),
+        getOrdersForAdmin({ fromDate: from, toDate: to, limit: 200 }),
     ]);
 
     return (
         <div>
-            <h1 className="text-2xl font-semibold text-[#FFF9EC] mb-6">
-                Dashboard Penjualan
-            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <h1 className="text-2xl font-semibold text-[#FFF9EC]">
+                    Dashboard Penjualan
+                </h1>
+                <Suspense fallback={<div className="h-10 w-48 rounded-lg bg-[#FFF9EC]/5 animate-pulse" />}>
+                    <SalesRangePicker
+                        currentRange={preset}
+                        customFrom={customFrom}
+                        customTo={customTo}
+                    />
+                </Suspense>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                <StatCard
-                    title="Order hari ini"
-                    value={String(statsToday.count)}
-                />
-                <StatCard
-                    title="Revenue hari ini"
-                    value={formatRupiah(statsToday.revenue)}
-                />
-                <StatCard
-                    title="Order 7 hari"
-                    value={String(statsWeek.count)}
-                />
-                <StatCard
-                    title="Revenue 7 hari"
-                    value={formatRupiah(statsWeek.revenue)}
-                />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                <StatCard title={`Order ${label}`} value={String(stats.count)} />
+                <StatCard title={`Revenue ${label}`} value={formatRupiah(stats.revenue)} />
             </div>
 
             <h2 className="text-lg font-semibold text-[#FFF9EC] mb-4">
-                Daftar Order (terbaru)
+                Daftar Order
             </h2>
-            <OrdersTable orders={recentOrders} />
+            <OrdersTable orders={orders} />
         </div>
     );
 }

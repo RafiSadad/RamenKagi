@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Plus } from "lucide-react";
+import { Plus, Minus } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { MenuItem, getEffectivePrice, isDiscountActive } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
@@ -24,8 +24,15 @@ const CATEGORY_EMOJI: Record<string, string> = {
 
 export default function MenuCard({ item, index }: MenuCardProps) {
     const addItem = useCartStore((s) => s.addItem);
+    const updateQuantity = useCartStore((s) => s.updateQuantity);
+    const cartItems = useCartStore((s) => s.items);
 
     const isSoldOut = item.stock !== undefined && item.stock <= 0;
+    
+    // Find current item in cart
+    const cartItem = cartItems.find((ci) => ci.menuItem._id === item._id);
+    const quantity = cartItem?.quantity || 0;
+    const isInCart = quantity > 0;
 
     const handleAdd = () => {
         if (isSoldOut) return;
@@ -33,6 +40,23 @@ export default function MenuCard({ item, index }: MenuCardProps) {
         toast.success(`${item.name} ditambahkan ke keranjang!`, {
             duration: 2000,
         });
+    };
+
+    const handleDecrease = () => {
+        if (quantity > 1) {
+            updateQuantity(item._id, quantity - 1);
+        } else {
+            updateQuantity(item._id, 0);
+        }
+    };
+
+    const handleIncrease = () => {
+        if (isSoldOut) return;
+        if (isInCart) {
+            updateQuantity(item._id, quantity + 1);
+        } else {
+            addItem(item);
+        }
     };
 
     const emoji = CATEGORY_EMOJI[item.category] || "🍜";
@@ -140,16 +164,41 @@ export default function MenuCard({ item, index }: MenuCardProps) {
                     {item.description}
                 </p>
 
-                {/* Add button */}
-                <motion.button
-                    whileTap={isSoldOut ? undefined : { scale: 0.9 }}
-                    onClick={handleAdd}
-                    disabled={isSoldOut}
-                    className="mt-3 w-full flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                    <Plus className="w-4 h-4" />
-                    {isSoldOut ? "Habis" : "Tambah"}
-                </motion.button>
+                {/* Add button or Quantity selector */}
+                {isInCart ? (
+                    <div className="mt-3 w-full flex items-center gap-2 bg-primary text-primary-foreground rounded-xl overflow-hidden">
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={handleDecrease}
+                            className="flex items-center justify-center w-10 h-10 hover:bg-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            aria-label="Kurangi jumlah"
+                        >
+                            <Minus className="w-4 h-4" />
+                        </motion.button>
+                        <span className="flex-1 text-center text-sm font-semibold">
+                            {quantity}
+                        </span>
+                        <motion.button
+                            whileTap={{ scale: 0.9 }}
+                            onClick={handleIncrease}
+                            disabled={isSoldOut}
+                            className="flex items-center justify-center w-10 h-10 hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            aria-label="Tambah jumlah"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </motion.button>
+                    </div>
+                ) : (
+                    <motion.button
+                        whileTap={isSoldOut ? undefined : { scale: 0.9 }}
+                        onClick={handleAdd}
+                        disabled={isSoldOut}
+                        className="mt-3 w-full flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                        <Plus className="w-4 h-4" />
+                        {isSoldOut ? "Habis" : "Tambah"}
+                    </motion.button>
+                )}
             </div>
         </motion.div>
     );

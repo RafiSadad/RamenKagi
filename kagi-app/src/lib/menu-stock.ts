@@ -1,9 +1,25 @@
 import { createClient } from "@supabase/supabase-js";
 
-function getSupabase() {
+function getSupabase(useServiceRole = false) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    if (!url || !key || url.includes("your-project")) return null;
+    if (!url || url.includes("your-project")) {
+        if (process.env.NODE_ENV === "development") {
+            console.warn("Supabase URL not configured or invalid");
+        }
+        return null;
+    }
+    
+    // For read operations, prefer Anon Key; for write operations, use Service Role Key
+    const key = useServiceRole
+        ? process.env.SUPABASE_SERVICE_ROLE_KEY
+        : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    
+    if (!key || key.includes("your") || key.includes("placeholder")) {
+        if (process.env.NODE_ENV === "development") {
+            console.warn(`Supabase ${useServiceRole ? "Service Role" : "Anon"} Key not configured`);
+        }
+        return null;
+    }
     return createClient(url, key);
 }
 
@@ -20,7 +36,7 @@ export async function getMenuStock(
         .in("menu_id", menuIds);
 
     if (error) {
-        console.error("getMenuStock error:", error.message, error.code, error.details);
+        console.error("getMenuStock error:", error.message || "Unknown error", error.code || "N/A", error.details || "No details");
         return {};
     }
 
@@ -60,7 +76,7 @@ export async function upsertMenuStock(
     quantity: number,
     defaultQuantity?: number | null
 ): Promise<boolean> {
-    const supabase = getSupabase();
+    const supabase = getSupabase(true); // Use Service Role Key for writes
     if (!supabase) return false;
 
     const payload: { menu_id: string; quantity: number; default_quantity?: number | null } = {
@@ -79,12 +95,17 @@ export async function upsertMenuStock(
     return true;
 }
 
+/** Cek koneksi Supabase (untuk debug: edit stok tidak nyimpan). */
+export function isMenuStockConfigured(): boolean {
+    return getSupabase() != null;
+}
+
 /** Decrement quantity by amount (e.g. after order). Prevents going below 0. */
 export async function decrementMenuStock(
     menuId: string,
     amount: number
 ): Promise<void> {
-    const supabase = getSupabase();
+    const supabase = getSupabase(true); // Use Service Role Key for writes
     if (!supabase || amount <= 0) return;
 
     const { data: row } = await supabase
@@ -112,7 +133,7 @@ export async function updateMenuStock(
 
 /** Set every row's quantity to its default_quantity (admin "reset stok"). */
 export async function resetAllStockToDefault(): Promise<boolean> {
-    const supabase = getSupabase();
+    const supabase = getSupabase(true); // Use Service Role Key for writes
     if (!supabase) return false;
 
     const { data: rows, error: fetchError } = await supabase
