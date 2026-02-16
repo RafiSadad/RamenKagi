@@ -55,3 +55,17 @@ Kalau tetap mau buat policy upload (misalnya untuk dokumentasi atau anon key di 
 - **Upload** tidak perlu policy khusus karena backend pakai Service Role (bypass RLS).
 
 - Setelah salah satu (Public bucket atau policy read) aktif, link gambar nota dari `getPublicUrl` bisa dibuka di browser.
+
+---
+
+## Kalau file tidak masuk ke bucket (upload gagal)
+
+1. **Cek `SUPABASE_SERVICE_ROLE_KEY`**  
+   Harus pakai **Service Role** (JWT) dari Supabase Dashboard → **Settings** → **API** → **Project API keys** → **service_role** (klik Reveal). Bentuknya panjang dan **dimulai dengan `eyJ`**.  
+   Jangan pakai anon key atau key lain (mis. `sb_secret_...`) — itu bukan key untuk Storage admin.
+
+2. **Bucket `nota` harus ada**  
+   Di Dashboard → **Storage** → **Buckets**: kalau belum ada, klik **New bucket** → nama **nota** → centang **Public bucket** → Create. Kode bisa coba buat bucket otomatis, tapi kalau gagal (izin/project), buat manual.
+
+3. **Cek error di app**  
+   Setelah simpan nota, kalau upload gagal sekarang akan muncul toast error. Di **Network** tab (F12) → request ke `/api/receipt/upload` → Response bisa berisi `detail` berisi pesan error dari Supabase.

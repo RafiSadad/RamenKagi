@@ -369,7 +369,14 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                         filename,
                         orderId: order.orderId || undefined,
                     }),
-                }).catch(() => {});
+                })
+                    .then((res) => {
+                        if (!res.ok) return res.json().then((d) => Promise.reject(d));
+                    })
+                    .catch((err) => {
+                        console.error("Upload nota ke bucket gagal:", err?.error ?? err?.detail ?? err);
+                        toast.error(err?.error ?? "Upload nota ke cloud gagal. Cek env SUPABASE_SERVICE_ROLE_KEY & bucket 'nota'.");
+                    });
             });
         } catch (error) {
             console.error("Error saving image:", error);

@@ -43,6 +43,10 @@ export async function POST(req: NextRequest) {
                 { status: 503 }
             );
         }
+        // Service Role harus JWT dari Dashboard → Settings → API (service_role). Bukan anon / sb_secret.
+        if (!supabaseKey.startsWith("eyJ")) {
+            console.error("SUPABASE_SERVICE_ROLE_KEY should be the JWT service_role key from Supabase Dashboard → Settings → API");
+        }
 
         const supabase = createClient(supabaseUrl, supabaseKey);
         const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
@@ -58,7 +62,13 @@ export async function POST(req: NextRequest) {
             });
 
         if (error) {
-            if (error.message?.includes("Bucket not found") || error.message?.includes("not found")) {
+            const msg = error.message ?? "";
+            const isBucketMissing =
+                /bucket not found/i.test(msg) ||
+                /not found/i.test(msg) ||
+                /resource was not found/i.test(msg) ||
+                /does not exist/i.test(msg);
+            if (isBucketMissing) {
                 const { error: createErr } = await supabase.storage.createBucket(BUCKET, {
                     public: true,
                     fileSizeLimit: 2 * 1024 * 1024, // 2MB
@@ -67,7 +77,10 @@ export async function POST(req: NextRequest) {
                 if (createErr) {
                     console.error("Receipt bucket create failed:", createErr);
                     return NextResponse.json(
-                        { error: "Upload failed. Create a public bucket named 'nota' in Supabase Storage." },
+                        {
+                            error: "Bucket 'nota' tidak ada dan gagal dibuat. Buat manual: Storage → New bucket → nama 'nota', Public.",
+                            detail: createErr.message,
+                        },
                         { status: 502 }
                     );
                 }
@@ -76,7 +89,10 @@ export async function POST(req: NextRequest) {
                     .upload(path, buffer, { contentType: "image/png", upsert: false });
                 if (retryErr) {
                     console.error("Receipt upload retry failed:", retryErr);
-                    return NextResponse.json({ error: "Upload failed" }, { status: 502 });
+                    return NextResponse.json(
+                        { error: "Upload gagal setelah buat bucket", detail: retryErr.message },
+                        { status: 502 }
+                    );
                 }
                 const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(retryData.path);
                 const publicUrl = urlData.publicUrl;
@@ -87,7 +103,10 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json({ url: publicUrl });
             }
             console.error("Receipt upload error:", error);
-            return NextResponse.json({ error: "Upload failed" }, { status: 502 });
+            return NextResponse.json(
+                { error: "Upload gagal", detail: msg },
+                { status: 502 }
+            );
         }
 
         const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
