@@ -245,9 +245,13 @@ function ReceiptContentForCapture({ order, totalItems, currentDate }: { order: O
 async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> {
     const originalTransform = element.style.transform;
     const originalTransformStyle = element.style.transformStyle;
+    const originalVisibility = element.style.visibility;
+    const originalOpacity = element.style.opacity;
     element.style.transform = "none";
     element.style.transformStyle = "flat";
-    await new Promise((r) => setTimeout(r, 100));
+    element.style.visibility = "visible";
+    element.style.opacity = "1";
+    await new Promise((r) => setTimeout(r, 150));
 
     const { default: html2canvas } = await import("html2canvas");
     const canvas = await html2canvas(element, {
@@ -258,9 +262,15 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
         allowTaint: false,
         windowWidth: element.scrollWidth,
         windowHeight: element.scrollHeight,
+        onclone(_, clonedEl) {
+            (clonedEl as HTMLElement).style.visibility = "visible";
+            (clonedEl as HTMLElement).style.opacity = "1";
+        },
     });
     element.style.transform = originalTransform;
     element.style.transformStyle = originalTransformStyle;
+    element.style.visibility = originalVisibility;
+    element.style.opacity = originalOpacity;
 
     return new Promise((resolve) => {
         canvas.toBlob((blob) => resolve(blob ?? null), "image/png");
@@ -497,15 +507,15 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
                     {/* Receipt */}
                     <div className="flex-1 overflow-y-auto p-6 relative">
-                        {/* Hidden receipt for capture (no animations, uses inline styles only) */}
+                        {/* Off-screen receipt for capture (no visibility:hidden — html2canvas needs painted content) */}
                         <div
                             ref={receiptRef}
+                            data-receipt-capture
                             style={{ 
                                 position: 'absolute',
                                 left: '-9999px',
                                 top: '-9999px',
                                 width: '384px',
-                                visibility: 'hidden',
                                 transform: 'none',
                                 backgroundColor: '#ffffff',
                                 borderRadius: '0.5rem',
@@ -513,7 +523,10 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                                 padding: '1.5rem',
                                 border: '2px dashed #e5e7eb',
                                 overflow: 'hidden',
+                                zIndex: -1,
+                                pointerEvents: 'none',
                             }}
+                            aria-hidden="true"
                         >
                             <ReceiptContentForCapture order={order} totalItems={totalItems} currentDate={currentDate} />
                         </div>
