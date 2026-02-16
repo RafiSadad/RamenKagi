@@ -138,13 +138,13 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
             <div className="h-px bg-border" />
             <h3 className="text-card-foreground font-bold text-sm">📝 Detail Pesanan</h3>
 
-            {/* Name */}
+            {/* Name — text-base (16px) prevents Safari iOS from zooming on focus */}
             <input
                 type="text"
                 placeholder="Nama kamu, Teman Kagi"
                 value={form.customerName}
                 onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
             />
 
             {/* Takeaway toggle */}
@@ -180,13 +180,14 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 >
                     <input
                         type="text"
+                        inputMode="numeric"
                         placeholder="Nomor meja (coba liat di meja)"
                         value={form.tableNumber}
                         onChange={(e) => {
                             setForm({ ...form, tableNumber: e.target.value });
                             setTableNumberError("");
                         }}
-                        className={`w-full bg-input border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors ${tableNumberError ? "border-destructive" : "border-border focus:border-primary/50"}`}
+                        className={`w-full bg-input border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors ${tableNumberError ? "border-destructive" : "border-border focus:border-primary/50"}`}
                     />
                     {tableNumberError && (
                         <p className="text-destructive text-sm mt-1">{tableNumberError}</p>
@@ -194,13 +195,13 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 </motion.div>
             )}
 
-            {/* Notes */}
+            {/* Notes — text-base prevents Safari iOS zoom on focus */}
             <textarea
                 placeholder="Catatan untuk dapur (opsional)"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 rows={2}
-                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors resize-none"
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors resize-none"
             />
 
             {/* Pay Button */}

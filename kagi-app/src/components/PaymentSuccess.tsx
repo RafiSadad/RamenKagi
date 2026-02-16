@@ -241,53 +241,73 @@ function ReceiptContentForCapture({ order, totalItems, currentDate }: { order: O
     );
 }
 
+/** Capture receipt element to PNG blob (shared by Unduh & Bagikan) */
+async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> {
+    const originalTransform = element.style.transform;
+    const originalTransformStyle = element.style.transformStyle;
+    element.style.transform = "none";
+    element.style.transformStyle = "flat";
+    await new Promise((r) => setTimeout(r, 100));
+
+    const { default: html2canvas } = await import("html2canvas");
+    const canvas = await html2canvas(element, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        allowTaint: false,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+    });
+    element.style.transform = originalTransform;
+    element.style.transformStyle = originalTransformStyle;
+
+    return new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob ?? null), "image/png");
+    });
+}
+
+function isMobile(): boolean {
+    if (typeof window === "undefined") return false;
+    return window.innerWidth < 768 || "ontouchstart" in window;
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = () => reject(new Error("Read failed"));
+        r.readAsDataURL(blob);
+    });
+}
+
 export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
     const [isSaving, setIsSaving] = useState(false);
 
     const handleSaveImage = async () => {
         if (!receiptRef.current) return;
-
         setIsSaving(true);
         try {
-            // Reset any transforms before capturing
-            const element = receiptRef.current;
-            const originalTransform = element.style.transform;
-            const originalTransformStyle = element.style.transformStyle;
-            
-            // Reset transforms for capture
-            element.style.transform = 'none';
-            element.style.transformStyle = 'flat';
-            
-            // Small delay to ensure transform is applied
-            await new Promise(resolve => setTimeout(resolve, 100));
+            const blob = await captureReceiptToBlob(receiptRef.current);
+            if (!blob) {
+                toast.error("Gagal menyimpan gambar");
+                setIsSaving(false);
+                return;
+            }
+            const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
 
-            const { default: html2canvas } = await import("html2canvas");
-            const canvas = await html2canvas(element, {
-                backgroundColor: "#ffffff",
-                scale: 2,
-                logging: false,
-                useCORS: true,
-                allowTaint: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight,
-            });
-
-            // Restore original transforms
-            element.style.transform = originalTransform;
-            element.style.transformStyle = originalTransformStyle;
-
-            canvas.toBlob((blob) => {
-                if (!blob) {
-                    toast.error("Gagal menyimpan gambar");
-                    setIsSaving(false);
-                    return;
+            if (isMobile()) {
+                const dataUrl = await blobToDataUrl(blob);
+                const opened = window.open(dataUrl, "_blank", "noopener");
+                if (opened) {
+                    toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
+                } else {
+                    window.location.href = dataUrl;
+                    toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
                 }
-
+            } else {
                 const url = URL.createObjectURL(blob);
-                const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
-                const isMobile = typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window);
-
                 const link = document.createElement("a");
                 link.href = url;
                 link.download = filename;
@@ -295,102 +315,76 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
-                if (isMobile) {
-                    // On mobile, programmatic download often doesn't trigger; open in new tab so user can long-press → Save
-                    const newTab = window.open(url, "_blank", "noopener");
-                    if (newTab) {
-                        toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
-                        setTimeout(() => URL.revokeObjectURL(url), 30000);
-                    } else {
-                        toast.success("Nota siap. Jika unduhan tidak mulai, gunakan tombol Bagikan Nota.");
-                        setTimeout(() => URL.revokeObjectURL(url), 10000);
-                    }
-                } else {
-                    setTimeout(() => URL.revokeObjectURL(url), 10000);
-                    toast.success("Nota berhasil disimpan!");
-                }
-                setIsSaving(false);
-            }, "image/png");
+                setTimeout(() => URL.revokeObjectURL(url), 8000);
+                toast.success("Nota berhasil disimpan!");
+            }
         } catch (error) {
             console.error("Error saving image:", error);
-            toast.error(`Gagal menyimpan gambar: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
+        } finally {
             setIsSaving(false);
         }
     };
 
     const handleShare = async () => {
         if (!receiptRef.current) return;
-
         setIsSaving(true);
         try {
-            // Reset any transforms before capturing
-            const element = receiptRef.current;
-            const originalTransform = element.style.transform;
-            const originalTransformStyle = element.style.transformStyle;
-            
-            // Reset transforms for capture
-            element.style.transform = 'none';
-            element.style.transformStyle = 'flat';
-            
-            // Small delay to ensure transform is applied
-            await new Promise(resolve => setTimeout(resolve, 100));
+            const blob = await captureReceiptToBlob(receiptRef.current);
+            if (!blob) {
+                toast.error("Gagal membagikan nota");
+                setIsSaving(false);
+                return;
+            }
+            const file = new File(
+                [blob],
+                `nota-kagi-${order.orderId || Date.now()}.png`,
+                { type: "image/png" }
+            );
 
-            const { default: html2canvas } = await import("html2canvas");
-            const canvas = await html2canvas(element, {
-                backgroundColor: "#ffffff",
-                scale: 2,
-                logging: false,
-                useCORS: true,
-                allowTaint: false,
-                windowWidth: element.scrollWidth,
-                windowHeight: element.scrollHeight,
-            });
-
-            // Restore original transforms
-            element.style.transform = originalTransform;
-            element.style.transformStyle = originalTransformStyle;
-
-            canvas.toBlob(async (blob) => {
-                if (!blob) {
-                    toast.error("Gagal membagikan nota");
+            // 1. Web Share (files) — works on mobile; some desktop support
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        title: `Nota Kagi Ramen - ${order.orderId}`,
+                        text: "Pesanan saya di Kagi Ramen",
+                        files: [file],
+                    });
+                    toast.success("Nota berhasil dibagikan!");
                     setIsSaving(false);
                     return;
-                }
-
-                const file = new File([blob], `nota-kagi-${order.orderId || Date.now()}.png`, {
-                    type: "image/png",
-                });
-
-                if (navigator.share && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({
-                            title: `Nota Kagi Ramen - ${order.orderId}`,
-                            text: "Pesanan saya di Kagi Ramen",
-                            files: [file],
-                        });
-                        toast.success("Nota berhasil dibagikan!");
-                    } catch (error) {
-                        if ((error as Error).name !== "AbortError") {
-                            toast.error("Gagal membagikan nota");
-                        }
+                } catch (err) {
+                    if ((err as Error).name === "AbortError") {
+                        setIsSaving(false);
+                        return;
                     }
-                } else {
-                    // Fallback: copy to clipboard
-                    try {
-                        await navigator.clipboard.write([
-                            new ClipboardItem({ "image/png": blob }),
-                        ]);
-                        toast.success("Nota disalin ke clipboard!");
-                    } catch {
-                        toast.info("Fitur share tidak tersedia. Gunakan tombol simpan.");
-                    }
+                    toast.error("Gagal membagikan nota");
                 }
+            }
+
+            // 2. Fallback: copy image to clipboard (desktop/mobile)
+            try {
+                await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                toast.success("Nota disalin ke clipboard! Tempel (Ctrl+V) di chat atau dokumen.");
                 setIsSaving(false);
-            }, "image/png");
+                return;
+            } catch {
+                // Clipboard not supported or denied
+            }
+
+            // 3. Fallback: open image in new tab — user can save or share from there (desktop & mobile)
+            const dataUrl = await blobToDataUrl(blob);
+            const opened = window.open(dataUrl, "_blank", "noopener");
+            if (opened) {
+                toast.success("Nota dibuka di tab baru. Simpan atau bagikan dari tab tersebut.");
+            } else {
+                window.location.href = dataUrl;
+                toast.success("Tekan lama pada gambar untuk simpan atau bagikan.");
+            }
         } catch (error) {
             console.error("Error sharing:", error);
-            toast.error(`Gagal membagikan nota: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            toast.error(`Gagal membagikan nota: ${error instanceof Error ? error.message : "Unknown error"}`);
+        } finally {
             setIsSaving(false);
         }
     };
