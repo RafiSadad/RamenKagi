@@ -17,7 +17,7 @@ async function sendPhotoToTelegram(buffer: Buffer, filename: string, caption: st
     const form = new FormData();
     form.append("chat_id", chatId);
     form.append("caption", caption);
-    form.append("photo", new Blob([buffer], { type: "image/png" }), filename);
+    form.append("photo", new Blob([new Uint8Array(buffer)], { type: "image/png" }), filename);
     const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
         method: "POST",
         body: form,
