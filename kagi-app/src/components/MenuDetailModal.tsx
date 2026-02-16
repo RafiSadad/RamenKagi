@@ -136,7 +136,7 @@ export default function MenuDetailModal({
             <DrawerContent className="bg-card border-t border-border max-h-[95vh] sm:max-h-[90vh] sm:max-w-md sm:mx-auto sm:rounded-2xl p-0 overflow-hidden">
                 <DrawerTitle className="sr-only">{item.name}</DrawerTitle>
                 <div className="mx-auto w-full max-w-md overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
-                    {/* Media Section - tinggi mengikuti asli media, lebar tetap */}
+                    {/* Media Section - lebar tetap, tinggi mengikuti gambar asli agar tidak terpotong */}
                     <div className="relative w-full bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden -mt-4 sm:mt-0">
                         {/* Close button */}
                         <button
@@ -164,11 +164,15 @@ export default function MenuDetailModal({
                             }
                             if (media.type === "image" && media.url) {
                                 return (
-                                    <img
-                                        src={media.url}
-                                        alt={item.name}
-                                        className="w-full h-auto block object-cover"
-                                    />
+                                    <div className="relative w-full min-h-[200px]">
+                                        <img
+                                            src={media.url}
+                                            alt={item.name}
+                                            className="w-full h-auto block object-contain"
+                                            loading="eager"
+                                            decoding="async"
+                                        />
+                                    </div>
                                 );
                             }
                             return (

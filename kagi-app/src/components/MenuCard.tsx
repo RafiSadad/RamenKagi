@@ -74,7 +74,7 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
             whileHover={{ y: -4 }}
             className="group relative bg-foreground/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all"
         >
-            {/* Media: tinggi mengikuti asli media, lebar tetap (sama dengan modal detail) */}
+            {/* Media: lebar tetap, tinggi mengikuti gambar asli agar tidak terpotong */}
             <button
                 onClick={() => setIsModalOpen(true)}
                 className="relative w-full block bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
@@ -91,11 +91,15 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         aria-label={item.name}
                     />
                 ) : item.mediaUrl && item.mediaType === "image" ? (
-                    <img
-                        src={item.mediaUrl}
-                        alt={item.name}
-                        className="w-full h-auto block object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <div className="relative w-full min-h-[140px]">
+                        <img
+                            src={item.mediaUrl}
+                            alt={item.name}
+                            className="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-500"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                    </div>
                 ) : item.videoUrl ? (
                     <video
                         src={item.videoUrl}
@@ -107,11 +111,15 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         aria-label={item.name}
                     />
                 ) : item.image ? (
-                    <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-auto block object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                    <div className="relative w-full min-h-[140px]">
+                        <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-500"
+                            loading="lazy"
+                            decoding="async"
+                        />
+                    </div>
                 ) : (
                     <div className="min-h-36 flex items-center justify-center text-5xl opacity-40 group-hover:scale-110 transition-transform duration-500">
                         {emoji}
@@ -169,8 +177,8 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                 <h3 className="text-foreground font-semibold text-sm leading-tight">
                     {item.name}
                 </h3>
-                <p className="text-foreground/40 text-xs mt-1 line-clamp-2">
-                    {item.description}
+                <p className="text-foreground/40 text-xs mt-1 line-clamp-2 text-ellipsis overflow-hidden" title={item.description ?? undefined}>
+                    {item.description || "—"}
                 </p>
 
                 {/* Add button or Quantity selector */}

@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 
 function getSupabase(useServiceRole = false) {
     const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -23,28 +24,35 @@ function getSupabase(useServiceRole = false) {
     return createClient(url, key);
 }
 
+const STOCK_REVALIDATE_SEC = 30; // Balance freshness vs TTFB; admin changes show within 30s
+
 /** Returns map of menu_id -> quantity. Menus not in table are treated as unlimited (omit from map). */
 export async function getMenuStock(
     menuIds: string[]
 ): Promise<Record<string, number>> {
-    const supabase = getSupabase();
-    if (!supabase || menuIds.length === 0) return {};
-
-    const { data, error } = await supabase
-        .from("menu_stock")
-        .select("menu_id, quantity")
-        .in("menu_id", menuIds);
-
-    if (error) {
-        console.error("getMenuStock error:", error.message || "Unknown error", error.code || "N/A", error.details || "No details");
-        return {};
-    }
-
-    const map: Record<string, number> = {};
-    for (const row of data || []) {
-        map[row.menu_id] = row.quantity ?? 0;
-    }
-    return map;
+    if (menuIds.length === 0) return {};
+    const cacheKey = ["menu-stock", menuIds.slice().sort().join(",")];
+    return unstable_cache(
+        async () => {
+            const supabase = getSupabase();
+            if (!supabase) return {};
+            const { data, error } = await supabase
+                .from("menu_stock")
+                .select("menu_id, quantity")
+                .in("menu_id", menuIds);
+            if (error) {
+                console.error("getMenuStock error:", error.message || "Unknown error", error.code || "N/A", error.details || "No details");
+                return {};
+            }
+            const map: Record<string, number> = {};
+            for (const row of data || []) {
+                map[row.menu_id] = row.quantity ?? 0;
+            }
+            return map;
+        },
+        cacheKey,
+        { revalidate: STOCK_REVALIDATE_SEC, tags: ["menu-stock"] }
+    )();
 }
 
 /** Fetch all rows from menu_stock. */

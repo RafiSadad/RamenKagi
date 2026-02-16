@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import {
     updateMenuStock as updateStock,
     resetAllStockToDefault as resetStock,
@@ -9,19 +9,30 @@ import {
 
 const STOCK_PAGE = "/admin/stock";
 
+function invalidateStockCache() {
+    revalidateTag("menu-stock", "max");
+    revalidatePath("/");
+}
+
 export async function updateMenuStock(
     menuId: string,
     quantity: number,
     defaultQuantity?: number | null
 ) {
     const ok = await updateStock(menuId, quantity, defaultQuantity);
-    if (ok) revalidatePath(STOCK_PAGE);
+    if (ok) {
+        revalidatePath(STOCK_PAGE);
+        invalidateStockCache();
+    }
     return ok;
 }
 
 export async function resetAllStockToDefault() {
     const ok = await resetStock();
-    if (ok) revalidatePath(STOCK_PAGE);
+    if (ok) {
+        revalidatePath(STOCK_PAGE);
+        invalidateStockCache();
+    }
     return ok;
 }
 
@@ -31,5 +42,6 @@ export async function syncMenuStockFromSanity(menuIds: string[]) {
     for (const id of menuIds) {
         await upsertMenuStock(id, defaultQty, defaultQty);
     }
+    invalidateStockCache();
     return true;
 }

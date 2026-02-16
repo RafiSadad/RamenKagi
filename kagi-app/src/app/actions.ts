@@ -3,7 +3,12 @@
 import { Order, getEffectivePrice } from "@/types/menu";
 import { decrementMenuStock } from "@/lib/menu-stock";
 
-// Submit order (saves to Supabase + sends Telegram notification)
+/** Escape user text for Telegram Markdown (avoid _ * ` [ breaking parse_mode) */
+function escapeMarkdown(text: string): string {
+    return text.replace(/([_*`\[\]])/g, "\\$1");
+}
+
+// Submit order (saves to Supabase + sends Telegram notification ke dapur)
 export async function submitOrder(order: Order) {
     try {
         // === 1. Save to Supabase ===
@@ -39,7 +44,7 @@ export async function submitOrder(order: Order) {
             console.log("📦 [DEV] Order received:", JSON.stringify(order, null, 2));
         }
 
-        // === 2. Send Telegram Notification ===
+        // === 2. Notifikasi Telegram ke dapur (setiap pesanan baru) ===
         const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
         const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
@@ -49,36 +54,49 @@ export async function submitOrder(order: Order) {
             !telegramToken.includes("your_bot")
         ) {
             const itemsList = order.items
-                .map((item) => `• ${item.menuItem.name} x${item.quantity}`)
+                .map((item) => `• ${escapeMarkdown(item.menuItem.name)} x${item.quantity}`)
                 .join("\n");
+            const customer = escapeMarkdown(order.customerName);
+            const tableOrTakeaway = order.isTakeaway ? "Takeaway" : `Meja: ${order.tableNumber}`;
+            const notesPart = order.notes ? `\n📝 *Catatan:* ${escapeMarkdown(order.notes)}` : "";
+            const timeStr = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
 
             const message = `🍜 *PESANAN BARU!*
 
-👤 *Nama:* ${order.customerName}
-🪑 *${order.isTakeaway ? "Takeaway" : `Meja: ${order.tableNumber}`}*
+👤 *Nama:* ${customer}
+🪑 *${tableOrTakeaway}*
 
 📋 *Pesanan:*
 ${itemsList}
 
 💰 *Total: Rp ${order.totalPrice.toLocaleString("id-ID")}*
-${order.notes ? `\n📝 *Catatan:* ${order.notes}` : ""}
+${notesPart}
 
-⏰ ${new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}`;
+⏰ ${timeStr}`;
 
-            await fetch(
-                `https://api.telegram.org/bot${telegramToken}/sendMessage`,
-                {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: telegramChatId,
-                        text: message,
-                        parse_mode: "Markdown",
-                    }),
+            try {
+                const res = await fetch(
+                    `https://api.telegram.org/bot${telegramToken}/sendMessage`,
+                    {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            chat_id: telegramChatId,
+                            text: message,
+                            parse_mode: "Markdown",
+                        }),
+                    }
+                );
+                if (!res.ok) {
+                    const err = await res.text();
+                    console.error("Telegram send failed:", res.status, err);
                 }
-            );
+            } catch (e) {
+                console.error("Telegram notification error:", e);
+                // Order tetap sukses; notifikasi gagal tidak membatalkan pesanan
+            }
         } else {
-            console.log("📱 [DEV] Telegram notification would be sent");
+            console.log("📱 [DEV] Telegram notification would be sent (set TELEGRAM_BOT_TOKEN & TELEGRAM_CHAT_ID)");
         }
 
         return { success: true };

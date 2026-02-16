@@ -1,4 +1,5 @@
 import { createClient } from "@sanity/client";
+import { unstable_cache } from "next/cache";
 
 export const sanityClient = createClient({
     projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || "j2xbsoqh",
@@ -7,17 +8,29 @@ export const sanityClient = createClient({
     useCdn: true,
 });
 
+const REVALIDATE_CATEGORIES = 300; // 5 min
+const REVALIDATE_MENU = 60; // 1 min - balance freshness vs TTFB
+const REVALIDATE_WELCOME = 300;
+const REVALIDATE_BANNERS = 300;
+
 export async function getCategories() {
-    return sanityClient.fetch(
-        `*[_type == "category"] | order(order asc) {
+    return unstable_cache(
+        () =>
+            sanityClient.fetch(
+                `*[_type == "category"] | order(order asc) {
             _id, title, "slug": slug.current, icon, order
         }`
-    );
+            ),
+        ["sanity-categories"],
+        { revalidate: REVALIDATE_CATEGORIES, tags: ["sanity"] }
+    )();
 }
 
 export async function getMenuItems() {
-    return sanityClient.fetch(
-        `*[_type == "menuItem"] {
+    return unstable_cache(
+        () =>
+            sanityClient.fetch(
+                `*[_type == "menuItem"] {
             _id, name, "slug": slug.current,
             mediaUrl, mediaType,
             detailMediaUrl, detailMediaType,
@@ -29,13 +42,18 @@ export async function getMenuItems() {
             flavor_category, product_type, flavor_weight,
             isPopular, isUpsell
         }`
-    );
+            ),
+        ["sanity-menu"],
+        { revalidate: REVALIDATE_MENU, tags: ["sanity"] }
+    )();
 }
 
 /** Halaman welcome (singleton). Satu dokumen saja. */
 export async function getWelcomePage() {
-    return sanityClient.fetch(
-        `*[_type == "welcomePage"][0] {
+    return unstable_cache(
+        () =>
+            sanityClient.fetch(
+                `*[_type == "welcomePage"][0] {
             _id,
             backgroundMediaUrl,
             backgroundMediaType,
@@ -43,17 +61,25 @@ export async function getWelcomePage() {
             subtitle,
             ctaText
         }`
-    );
+            ),
+        ["sanity-welcome"],
+        { revalidate: REVALIDATE_WELCOME, tags: ["sanity"] }
+    )();
 }
 
 /** Banner hero carousel, max 3. Ordered by order asc, then _createdAt. */
 export async function getBanners() {
-    return sanityClient.fetch(
-        `*[_type == "banner"] | order(order asc, _createdAt asc)[0...3] {
+    return unstable_cache(
+        () =>
+            sanityClient.fetch(
+                `*[_type == "banner"] | order(order asc, _createdAt asc)[0...3] {
             _id, title, headline, subtitle,
             mediaUrl, mediaType,
             "image": image.asset->url,
             link, order
         }`
-    );
+            ),
+        ["sanity-banners"],
+        { revalidate: REVALIDATE_BANNERS, tags: ["sanity"] }
+    )();
 }

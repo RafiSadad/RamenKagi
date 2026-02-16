@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Plus, X } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
@@ -75,10 +76,12 @@ export default function UpsellCheckoutModal({
                                 <div className="flex gap-3 items-center rounded-xl bg-muted/50 border border-border p-3 mb-4">
                                     {imageUrl ? (
                                         <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
-                                            <img
+                                            <Image
                                                 src={imageUrl}
                                                 alt=""
-                                                className="object-cover w-full h-full"
+                                                fill
+                                                sizes="64px"
+                                                className="object-cover"
                                             />
                                         </div>
                                     ) : (

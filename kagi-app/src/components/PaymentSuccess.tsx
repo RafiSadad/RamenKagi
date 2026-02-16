@@ -3,7 +3,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Download, Share2, CheckCircle2, X } from "lucide-react";
-import html2canvas from "html2canvas";
 import { formatRupiah } from "@/lib/utils";
 import { getEffectivePrice } from "@/types/menu";
 import type { Order } from "@/types/menu";
@@ -263,6 +262,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             // Small delay to ensure transform is applied
             await new Promise(resolve => setTimeout(resolve, 100));
 
+            const { default: html2canvas } = await import("html2canvas");
             const canvas = await html2canvas(element, {
                 backgroundColor: "#ffffff",
                 scale: 2,
@@ -320,6 +320,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             // Small delay to ensure transform is applied
             await new Promise(resolve => setTimeout(resolve, 100));
 
+            const { default: html2canvas } = await import("html2canvas");
             const canvas = await html2canvas(element, {
                 backgroundColor: "#ffffff",
                 scale: 2,

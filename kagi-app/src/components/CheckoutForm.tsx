@@ -26,6 +26,7 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
         notes: "",
     });
     const [loading, setLoading] = useState(false);
+    const [tableNumberError, setTableNumberError] = useState("");
     const [upsellModal, setUpsellModal] = useState<{
         item: MenuItem;
         copy: string;
@@ -40,6 +41,11 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
             toast.error("Masukkan nomor meja!");
             return;
         }
+        if (!form.isTakeaway && form.tableNumber.trim() && !/^\d+$/.test(form.tableNumber.trim())) {
+            setTableNumberError("Nomor meja ya, bukan yang lain");
+            return;
+        }
+        setTableNumberError("");
 
         setLoading(true);
         try {
@@ -86,6 +92,11 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
             toast.error("Masukkan nomor meja!");
             return;
         }
+        if (!form.isTakeaway && form.tableNumber.trim() && !/^\d+$/.test(form.tableNumber.trim())) {
+            setTableNumberError("Nomor meja ya, bukan yang lain");
+            return;
+        }
+        setTableNumberError("");
         const suggestion = getSuggestedUpsell(items, menuItems);
         if (suggestion.suggestedItem && suggestion.copy) {
             setUpsellModal({ item: suggestion.suggestedItem, copy: suggestion.copy });
@@ -150,7 +161,7 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 </button>
                 <button
                     type="button"
-                    onClick={() => setForm({ ...form, isTakeaway: true, tableNumber: "" })}
+                    onClick={() => { setForm({ ...form, isTakeaway: true, tableNumber: "" }); setTableNumberError(""); }}
                     className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${form.isTakeaway
                         ? "bg-primary text-primary-foreground"
                         : "bg-input text-muted-foreground border border-border"
@@ -169,11 +180,17 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 >
                     <input
                         type="text"
-                        placeholder="Nomor meja (contoh: 5)"
+                        placeholder="Nomor meja (coba liat di meja)"
                         value={form.tableNumber}
-                        onChange={(e) => setForm({ ...form, tableNumber: e.target.value })}
-                        className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                        onChange={(e) => {
+                            setForm({ ...form, tableNumber: e.target.value });
+                            setTableNumberError("");
+                        }}
+                        className={`w-full bg-input border rounded-xl px-4 py-2.5 text-card-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors ${tableNumberError ? "border-destructive" : "border-border focus:border-primary/50"}`}
                     />
+                    {tableNumberError && (
+                        <p className="text-destructive text-sm mt-1">{tableNumberError}</p>
+                    )}
                 </motion.div>
             )}
 

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description:
     "Pesan ramen favoritmu langsung dari meja. Kagi Ramen House — authentic Japanese ramen experience.",
   icons: {
-    icon: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍜</text></svg>",
+    icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23CC3939' d='M50 18c-12 0-22 8-28 20h8c5-9 13-14 22-14s17 5 22 14h8c-6-12-16-20-28-20z'/%3E%3Cellipse fill='%23FFAF03' cx='50' cy='62' rx='28' ry='12'/%3E%3Cpath fill='%2347220F' d='M30 58h40v6H30z'/%3E%3C/svg%3E",
   },
 };
 
