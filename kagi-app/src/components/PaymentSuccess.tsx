@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Share2, CheckCircle2, X } from "lucide-react";
+import { Download, Share2, CheckCircle2, X, Send } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { getEffectivePrice } from "@/types/menu";
 import type { Order } from "@/types/menu";
@@ -305,26 +305,66 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     const receiptBlobRef = useRef<Blob | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [imageReady, setImageReady] = useState(false);
+    const [sendToKitchenStatus, setSendToKitchenStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+    const [useSendButton, setUseSendButton] = useState(false);
+    useEffect(() => setUseSendButton(isSafariOrNeedsNewTab()), []);
 
-    // Upload ke Supabase + kirim ke Telegram (dipanggil setelah gambar siap)
+    // Di Safari/iOS request dari halaman utama sering diblokir; kirim lewat tab baru.
+    function isSafariOrNeedsNewTab(): boolean {
+        if (typeof window === "undefined") return false;
+        const ua = navigator.userAgent;
+        return /Safari/i.test(ua) && !/Chrome/i.test(ua) || /iPhone|iPad|iPod/i.test(ua);
+    }
+
+    // Upload ke Supabase + kirim ke Telegram (setelah gambar siap). Safari: lewat tab baru.
     function sendReceiptToCloud(blob: Blob) {
-        const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
+        const orderIdVal = order.orderId || `KAGI-${Date.now()}`;
+        const filename = `nota-kagi-${orderIdVal}.png`;
+
+        if (isSafariOrNeedsNewTab()) {
+            const sendUrl = `${window.location.origin}/receipt/send?orderId=${encodeURIComponent(orderIdVal)}`;
+            const win = window.open(sendUrl, "_blank", "noopener");
+            let done = false;
+            const fallback = () => {
+                if (done) return;
+                done = true;
+                blobToDataUrl(blob).then((dataUrl) => {
+                    fetch("/api/receipt/upload", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ image: dataUrl, filename, orderId: orderIdVal }),
+                    }).catch((e) => console.error("Upload fallback gagal:", e));
+                });
+            };
+            const handler = (event: MessageEvent) => {
+                if (event.data?.type !== "receipt-send-ready" || event.data?.orderId !== orderIdVal) return;
+                if (event.source !== win || done) return;
+                done = true;
+                window.removeEventListener("message", handler);
+                blobToDataUrl(blob).then((dataUrl) => {
+                    (event.source as Window).postMessage(
+                        { type: "receipt-data", dataUrl, orderId: orderIdVal },
+                        window.location.origin
+                    );
+                });
+            };
+            window.addEventListener("message", handler);
+            setTimeout(fallback, 3500);
+            return;
+        }
+
         blobToDataUrl(blob).then((dataUrl) => {
             fetch("/api/receipt/upload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    image: dataUrl,
-                    filename,
-                    orderId: order.orderId || undefined,
-                }),
+                body: JSON.stringify({ image: dataUrl, filename, orderId: orderIdVal }),
             }).catch((err) => {
                 console.error("Upload nota ke bucket/Telegram gagal:", err?.error ?? err?.detail ?? err);
             });
         });
     }
 
-    // Generate gambar nota sekali saat payment success → langsung kirim ke Telegram + bucket
+    // Generate gambar nota sekali saat payment success. Safari: jangan auto-send (fetch diblokir).
     useEffect(() => {
         let cancelled = false;
         const t = setTimeout(async () => {
@@ -338,7 +378,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                     const blob = await captureReceiptToBlob(el);
                     if (!cancelled && blob) {
                         receiptBlobRef.current = blob;
-                        sendReceiptToCloud(blob);
+                        if (!isSafariOrNeedsNewTab()) sendReceiptToCloud(blob);
                     }
                 } catch {
                     // ignore; getReceiptBlob() will capture on demand when user clicks
@@ -346,7 +386,6 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             }
             if (!cancelled) setImageReady(true);
         }, 800);
-        // Fallback: setelah 2.5 detik tetap enable tombol (capture on demand)
         const fallback = setTimeout(() => {
             if (!cancelled) setImageReady(true);
         }, 2500);
@@ -363,6 +402,42 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
         const blob = await captureReceiptToBlob(receiptRef.current);
         if (blob) receiptBlobRef.current = blob;
         return blob;
+    };
+
+    // Safari: kirim ke dapur lewat tab baru (harus dari klik user supaya popup diizinkan)
+    const handleSendToKitchen = async () => {
+        const blob = await getReceiptBlob();
+        if (!blob) {
+            toast.error("Gambar nota belum siap. Tunggu sebentar lalu coba lagi.");
+            return;
+        }
+        const orderIdVal = order.orderId || `KAGI-${Date.now()}`;
+        setSendToKitchenStatus("sending");
+        const sendUrl = `${window.location.origin}/receipt/send?orderId=${encodeURIComponent(orderIdVal)}`;
+        const win = window.open(sendUrl, "_blank", "noopener");
+        if (!win) {
+            setSendToKitchenStatus("error");
+            toast.error("Izinkan popup untuk mengirim nota ke dapur.");
+            return;
+        }
+        const handler = (event: MessageEvent) => {
+            if (event.data?.type === "receipt-send-ready" && event.data?.orderId === orderIdVal && event.source === win) {
+                blobToDataUrl(blob).then((dataUrl) => {
+                    (event.source as Window).postMessage(
+                        { type: "receipt-data", dataUrl, orderId: orderIdVal },
+                        window.location.origin
+                    );
+                });
+            }
+            if (event.data?.type === "receipt-upload-done") {
+                window.removeEventListener("message", handler);
+                setSendToKitchenStatus(event.data?.ok ? "sent" : "error");
+                if (event.data?.ok) toast.success("Nota terkirim ke dapur.");
+                else toast.error("Gagal mengirim ke dapur.");
+            }
+        };
+        window.addEventListener("message", handler);
+        setTimeout(() => window.removeEventListener("message", handler), 15000);
     };
 
     const handleSaveImage = async () => {
@@ -601,6 +676,20 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
                     {/* Action Buttons */}
                     <div className="p-6 border-t border-border bg-card space-y-3">
+                        {useSendButton && (
+                            <motion.button
+                                whileTap={{ scale: 0.97 }}
+                                onClick={handleSendToKitchen}
+                                disabled={!imageReady || sendToKitchenStatus === "sending"}
+                                className="w-full bg-amber-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-700 transition-colors disabled:opacity-50"
+                            >
+                                <Send className="w-5 h-5" />
+                                {sendToKitchenStatus === "idle" && "Kirim nota ke dapur"}
+                                {sendToKitchenStatus === "sending" && "Mengirim…"}
+                                {sendToKitchenStatus === "sent" && "✓ Terkirim ke dapur"}
+                                {sendToKitchenStatus === "error" && "Kirim lagi ke dapur"}
+                            </motion.button>
+                        )}
                         <motion.button
                             whileTap={{ scale: 0.97 }}
                             onClick={handleSaveImage}
