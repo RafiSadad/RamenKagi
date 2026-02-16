@@ -289,13 +289,32 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
     // Generate gambar nota sekali saat payment success (modal sudah tampil)
     useEffect(() => {
-        if (!receiptRef.current) return;
+        let cancelled = false;
         const t = setTimeout(async () => {
-            const blob = await captureReceiptToBlob(receiptRef.current!);
-            if (blob) receiptBlobRef.current = blob;
-            setImageReady(true);
-        }, 600);
-        return () => clearTimeout(t);
+            const el = receiptRef.current;
+            if (cancelled) {
+                setImageReady(true);
+                return;
+            }
+            if (el) {
+                try {
+                    const blob = await captureReceiptToBlob(el);
+                    if (!cancelled && blob) receiptBlobRef.current = blob;
+                } catch {
+                    // ignore; getReceiptBlob() will capture on demand when user clicks
+                }
+            }
+            if (!cancelled) setImageReady(true);
+        }, 800);
+        // Fallback: setelah 2.5 detik tetap enable tombol (capture on demand)
+        const fallback = setTimeout(() => {
+            if (!cancelled) setImageReady(true);
+        }, 2500);
+        return () => {
+            cancelled = true;
+            clearTimeout(t);
+            clearTimeout(fallback);
+        };
     }, [order.orderId]);
 
     const getReceiptBlob = async (): Promise<Blob | null> => {
