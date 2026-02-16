@@ -111,7 +111,7 @@ Salin dari `.env.local` ke Vercel → Settings → Environment Variables (projec
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` atau `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
-- Supabase Storage: untuk **simpan nota**, bucket `receipts` (public) akan dibuat otomatis saat pertama kali user simpan nota. Gambar nota juga dikirim ke Telegram; file di Storage dihapus otomatis **tiap hari** (cron tengah malam UTC; file lebih tua dari 3 hari dihapus).
+- Supabase Storage: untuk **simpan nota**, bucket `nota` (public) akan dibuat otomatis saat pertama kali user simpan nota. Gambar nota juga dikirim ke Telegram; file di Storage dihapus otomatis **tiap hari** (cron tengah malam UTC; file lebih tua dari 3 hari dihapus).
 - **CRON_SECRET**: buat nilai rahasia (mis. `openssl rand -hex 32`) dan set di Vercel → Environment Variables. Dipakai untuk auth endpoint cron pembersihan receipt (wajib di production).
 - `NEXT_PUBLIC_SANITY_PROJECT_ID`
 - `NEXT_PUBLIC_SANITY_DATASET`
@@ -133,7 +133,7 @@ Kode nota (upload + cron) sudah ada di **kagi-app**; begitu deploy, API ikut ter
 
 2. **Environment Variables** (project kagi-app) — untuk nota wajib:
    - **Supabase** (sudah dipakai order): `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`  
-     → dipakai untuk upload gambar ke bucket `receipts` dan untuk cron hapus file.
+     → dipakai untuk upload gambar ke bucket `nota` dan untuk cron hapus file.
    - **Telegram** (sudah dipakai notif pesanan): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`  
      → dipakai untuk kirim foto nota ke grup/chat.
    - **CRON_SECRET** (khusus cron):  
@@ -145,7 +145,7 @@ Kode nota (upload + cron) sudah ada di **kagi-app**; begitu deploy, API ikut ter
    Tidak perlu konfigurasi tambahan. Jadwal ada di **kagi-app/vercel.json** (`/api/cron/clean-receipts`, sekali sehari). Setelah deploy, Vercel otomatis jalankan cron di production.
 
 4. **Supabase Storage**  
-   Bucket **`receipts`** akan dibuat otomatis saat pertama kali ada user yang simpan nota (jika belum ada). Kalau mau buat manual: Supabase Dashboard → Storage → New bucket → nama `receipts`, **Public** on.
+   Bucket **`receipts`** akan dibuat otomatis saat pertama kali ada user yang simpan nota (jika belum ada). Kalau mau buat manual: Supabase Dashboard → Storage → New bucket → nama `nota`, **Public** on.
 
 Setelah itu: user simpan nota → upload ke Storage → foto ke Telegram → link dibuka user. File di Storage dihapus cron tiap hari (yang umur > 3 hari).
 

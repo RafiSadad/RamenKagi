@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const BUCKET = "receipts";
+const BUCKET = "nota";
 const MAX_AGE_MS = 3 * 24 * 60 * 60 * 1000; // 3 hari — file lebih tua dari ini akan dihapus
 
 export const dynamic = "force-dynamic";

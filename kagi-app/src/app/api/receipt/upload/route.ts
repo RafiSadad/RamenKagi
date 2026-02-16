@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const BUCKET = "receipts";
+const BUCKET = "nota";
 
 export async function POST(req: NextRequest) {
     try {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
                 if (createErr) {
                     console.error("Receipt bucket create failed:", createErr);
                     return NextResponse.json(
-                        { error: "Upload failed. Create a public bucket named 'receipts' in Supabase Storage." },
+                        { error: "Upload failed. Create a public bucket named 'nota' in Supabase Storage." },
                         { status: 502 }
                     );
                 }
@@ -66,11 +66,18 @@ export async function POST(req: NextRequest) {
                         const caption = orderId
                             ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
                             : "📷 Nota pesanan";
-                        await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
+                        const formData = new FormData();
+                        formData.append("chat_id", telegramChatId);
+                        formData.append("caption", caption);
+                        formData.append("photo", new Blob([buffer], { type: "image/png" }), safeName);
+                        const tgRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
                             method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ chat_id: telegramChatId, photo: publicUrl, caption }),
+                            body: formData,
                         });
+                        if (!tgRes.ok) {
+                            const errBody = await tgRes.text();
+                            console.error("Telegram sendPhoto failed:", tgRes.status, errBody);
+                        }
                     } catch (err) {
                         console.error("Telegram sendPhoto error:", err);
                     }
@@ -91,15 +98,18 @@ export async function POST(req: NextRequest) {
                 const caption = orderId
                     ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
                     : "📷 Nota pesanan";
-                await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
+                const formData = new FormData();
+                formData.append("chat_id", telegramChatId);
+                formData.append("caption", caption);
+                formData.append("photo", new Blob([buffer], { type: "image/png" }), safeName);
+                const tgRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        chat_id: telegramChatId,
-                        photo: publicUrl,
-                        caption,
-                    }),
+                    body: formData,
                 });
+                if (!tgRes.ok) {
+                    const errBody = await tgRes.text();
+                    console.error("Telegram sendPhoto failed:", tgRes.status, errBody);
+                }
             } catch (err) {
                 console.error("Telegram sendPhoto error:", err);
             }
