@@ -111,6 +111,8 @@ Salin dari `.env.local` ke Vercel → Settings → Environment Variables (projec
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` atau `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- Supabase Storage: untuk **simpan nota**, bucket `receipts` (public) akan dibuat otomatis saat pertama kali user simpan nota. Gambar nota juga dikirim ke Telegram; file di Storage dihapus otomatis **tiap hari** (cron tengah malam UTC; file lebih tua dari 3 hari dihapus).
+- **CRON_SECRET**: buat nilai rahasia (mis. `openssl rand -hex 32`) dan set di Vercel → Environment Variables. Dipakai untuk auth endpoint cron pembersihan receipt (wajib di production).
 - `NEXT_PUBLIC_SANITY_PROJECT_ID`
 - `NEXT_PUBLIC_SANITY_DATASET`
 - `TELEGRAM_BOT_TOKEN`
@@ -119,6 +121,33 @@ Salin dari `.env.local` ke Vercel → Settings → Environment Variables (projec
 - Midtrans: `NEXT_PUBLIC_MIDTRANS_CLIENT_KEY`, `MIDTRANS_SERVER_KEY`, `NEXT_PUBLIC_MIDTRANS_IS_PRODUCTION`
 
 Jangan commit `.env.local`; isi env hanya di Vercel (dan lokal).
+
+---
+
+## 6.1 Fitur Nota (simpan + kirim Telegram + hapus otomatis) — yang perlu di Vercel
+
+Kode nota (upload + cron) sudah ada di **kagi-app**; begitu deploy, API ikut terpasang. Yang harus kamu set di Vercel:
+
+1. **Deploy seperti biasa**  
+   Pastikan project Vercel pakai **Root Directory: `kagi-app`**. Setiap push/deploy akan include `vercel.json` (cron) dan route `/api/receipt/upload`, `/api/cron/clean-receipts`.
+
+2. **Environment Variables** (project kagi-app) — untuk nota wajib:
+   - **Supabase** (sudah dipakai order): `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`  
+     → dipakai untuk upload gambar ke bucket `receipts` dan untuk cron hapus file.
+   - **Telegram** (sudah dipakai notif pesanan): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`  
+     → dipakai untuk kirim foto nota ke grup/chat.
+   - **CRON_SECRET** (khusus cron):  
+     → Buat nilai rahasia (di PowerShell: `[Convert]::ToBase64String((1..32 | ForEach-Object { Get-Random -Maximum 256 }) -as [byte[]])` atau pakai [random.org](https://random.org)).  
+     → Di Vercel: **Settings → Environment Variables** → Add → Name: `CRON_SECRET`, Value: (nilai rahasia tadi).  
+     → Tanpa ini, endpoint cron bisa return 401. Kalau `CRON_SECRET` sudah di-set di Vercel, Vercel akan kirim secret itu di header saat memanggil cron.
+
+3. **Cron**  
+   Tidak perlu konfigurasi tambahan. Jadwal ada di **kagi-app/vercel.json** (`/api/cron/clean-receipts`, sekali sehari). Setelah deploy, Vercel otomatis jalankan cron di production.
+
+4. **Supabase Storage**  
+   Bucket **`receipts`** akan dibuat otomatis saat pertama kali ada user yang simpan nota (jika belum ada). Kalau mau buat manual: Supabase Dashboard → Storage → New bucket → nama `receipts`, **Public** on.
+
+Setelah itu: user simpan nota → upload ke Storage → foto ke Telegram → link dibuka user. File di Storage dihapus cron tiap hari (yang umur > 3 hari).
 
 ---
 

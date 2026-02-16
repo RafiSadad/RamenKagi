@@ -296,27 +296,46 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 return;
             }
             const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
+            const dataUrl = await blobToDataUrl(blob);
+            const base64 = dataUrl;
 
-            if (isMobile()) {
-                const dataUrl = await blobToDataUrl(blob);
-                const opened = window.open(dataUrl, "_blank", "noopener");
+            const res = await fetch("/api/receipt/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    image: base64,
+                    filename,
+                    orderId: order.orderId || undefined,
+                }),
+            });
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.url) {
+                const opened = window.open(data.url, "_blank", "noopener");
                 if (opened) {
-                    toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
+                    toast.success(
+                        isMobile()
+                            ? "Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar."
+                            : "Nota dibuka di tab baru. Klik kanan → Simpan gambar."
+                    );
                 } else {
-                    window.location.href = dataUrl;
+                    window.location.href = data.url;
                     toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
                 }
+                return;
+            }
+
+            // Fallback tanpa server: buka data URL (seperti sebelumnya)
+            const opened = window.open(dataUrl, "_blank", "noopener");
+            if (opened) {
+                toast.success(
+                    isMobile()
+                        ? "Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar."
+                        : "Nota dibuka di tab baru. Klik kanan → Simpan gambar."
+                );
             } else {
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = filename;
-                link.setAttribute("download", filename);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(url), 8000);
-                toast.success("Nota berhasil disimpan!");
+                window.location.href = dataUrl;
+                toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
             }
         } catch (error) {
             console.error("Error saving image:", error);
