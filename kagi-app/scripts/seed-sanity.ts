@@ -56,6 +56,8 @@ type JsonMenuItem = {
   price: number;
   description: string;
   hasPhoto?: boolean;
+  /** URL gambar (Cloudinary). Di-seed ke Sanity sebagai mediaUrl + mediaType "image". */
+  photoUrl?: string;
 };
 
 function slugify(text: string): string {
@@ -203,6 +205,7 @@ async function seed() {
       price: item.price,
       description: item.description ?? "",
       category: { _type: "reference", _ref: `category-${categorySlug}` },
+      ...(item.photoUrl && { mediaUrl: item.photoUrl, mediaType: "image" as const }),
       flavor_category: upsell.flavor_category,
       product_type: upsell.product_type,
       flavor_weight: upsell.flavor_weight,

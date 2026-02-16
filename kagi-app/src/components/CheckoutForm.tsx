@@ -10,10 +10,10 @@ import { submitOrder } from "@/app/actions";
 import { toast } from "sonner";
 import { getSuggestedUpsell } from "@/lib/upsell-scoring";
 import UpsellCheckoutModal from "./UpsellCheckoutModal";
-import type { MenuItem } from "@/types/menu";
+import type { MenuItem, Order } from "@/types/menu";
 
 interface CheckoutFormProps {
-    onSuccess: () => void;
+    onSuccess: (order: Order) => void;
     menuItems: MenuItem[];
 }
 
@@ -47,103 +47,32 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
             const orderId = `KAGI-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
             const totalPrice = getTotalPrice();
 
-            // Prepare items for Midtrans (use effective price after discount)
-            const orderItems = items.map((item) => ({
-                name: item.menuItem.name,
-                price: getEffectivePrice(item.menuItem),
-                quantity: item.quantity,
-            }));
-
-            // Request payment token from backend
-            const paymentRes = await fetch("/api/payment", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    orderId,
-                    grossAmount: totalPrice,
-                    customerName: form.customerName,
-                    items: orderItems,
-                }),
-            });
-
-            const paymentData = await paymentRes.json();
-
-            if (!paymentRes.ok) {
-                throw new Error(paymentData.error || "Payment failed");
-            }
-
-            // Dev mode fallback
-            if (paymentData.dev_mode) {
-                toast.info(
-                    "💳 Mode development — Midtrans belum dikonfigurasi. Pesanan akan dikirim langsung.",
-                    { duration: 3000 }
-                );
-                await submitDirectOrder(orderId);
-                return;
-            }
-
-            // Check if Snap is available
-            if (typeof window !== "undefined" && window.snap) {
-                window.snap.pay(paymentData.token, {
-                    onSuccess: async () => {
-                        toast.success(
-                            "🎉 Pembayaran berhasil! Kami sedang meracik kaldu spesial untuk Anda~",
-                            { duration: 4000 }
-                        );
-                        await submitDirectOrder(orderId, "paid");
-                    },
-                    onPending: () => {
-                        toast.info(
-                            "⏳ Menunggu pembayaran... Silakan selesaikan pembayaran.",
-                            { duration: 5000 }
-                        );
-                    },
-                    onError: () => {
-                        toast.error("❌ Pembayaran gagal. Coba lagi ya!");
-                    },
-                    onClose: () => {
-                        toast.info("Popup pembayaran ditutup. Silakan coba lagi jika ingin melanjutkan.", {
-                            duration: 3000,
-                        });
-                    },
-                });
-            } else {
-                // Snap.js not loaded — fallback to redirect
-                if (paymentData.redirect_url && paymentData.redirect_url !== "#") {
-                    window.location.href = paymentData.redirect_url;
-                } else {
-                    toast.error("Payment service not available. Please refresh and try again.");
-                }
-            }
-        } catch (error) {
-            console.error("Payment error:", error);
-            toast.error("Terjadi kesalahan. Coba lagi!");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const submitDirectOrder = async (orderId: string, paymentStatus?: string) => {
-        try {
-            const result = await submitOrder({
+            // Prepare order object
+            const order: Order = {
                 customerName: form.customerName,
                 tableNumber: form.isTakeaway ? "Takeaway" : form.tableNumber,
                 isTakeaway: form.isTakeaway,
                 items,
-                totalPrice: getTotalPrice(),
+                totalPrice,
                 notes: form.notes,
                 orderId,
-                paymentStatus: paymentStatus || "pending",
-            });
+                paymentStatus: "paid", // Skip payment, mark as paid
+            };
+
+            // Submit order directly (skip payment)
+            const result = await submitOrder(order);
 
             if (result.success) {
                 clearCart();
-                onSuccess();
+                onSuccess(order);
             } else {
                 toast.error("Gagal mengirim pesanan. Coba lagi ya!");
             }
-        } catch {
-            toast.error("Terjadi kesalahan saat menyimpan pesanan.");
+        } catch (error) {
+            console.error("Order error:", error);
+            toast.error("Terjadi kesalahan. Coba lagi!");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -274,10 +203,10 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 )}
             </motion.button>
 
-            {/* Trust: Midtrans + security */}
+            {/* Trust message */}
             <p className="text-center text-muted-foreground text-[10px] flex items-center justify-center gap-1.5 flex-wrap">
                 <Send className="w-3 h-3 shrink-0" />
-                Pembayaran aman diproses oleh Midtrans
+                Pesanan akan langsung diproses setelah konfirmasi
             </p>
         </form>
         </>

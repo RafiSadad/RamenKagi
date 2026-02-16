@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Plus, Minus } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
@@ -75,10 +74,10 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
             whileHover={{ y: -4 }}
             className="group relative bg-foreground/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all"
         >
-            {/* Media: Cloudinary (mediaUrl+mediaType) > legacy videoUrl/image > placeholder */}
+            {/* Media: tinggi mengikuti asli media, lebar tetap (sama dengan modal detail) */}
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="relative h-36 w-full bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
+                className="relative w-full block bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
                 aria-label={`Lihat detail ${item.name}`}
             >
                 {item.mediaUrl && item.mediaType === "video" ? (
@@ -88,16 +87,14 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.mediaUrl && item.mediaType === "image" ? (
-                    <Image
+                    <img
                         src={item.mediaUrl}
                         alt={item.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 50vw, 200px"
+                        className="w-full h-auto block object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : item.videoUrl ? (
                     <video
@@ -106,43 +103,43 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.image ? (
-                    <Image
+                    <img
                         src={item.image}
                         alt={item.name}
-                        fill
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 768px) 50vw, 200px"
+                        className="w-full h-auto block object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                 ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-5xl opacity-40 group-hover:scale-110 transition-transform duration-500">
+                    <div className="min-h-36 flex items-center justify-center text-5xl opacity-40 group-hover:scale-110 transition-transform duration-500">
                         {emoji}
                     </div>
                 )}
 
-                {/* Sold out badge (priority over Popular) */}
-                {item.stock !== undefined && item.stock <= 0 ? (
-                    <div className="absolute top-2 left-2 bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        Habis
+                {/* Overlay badges & price - absolute di atas media */}
+                <div className="absolute inset-0 pointer-events-none flex flex-col">
+                    <div className="flex items-start justify-between p-2">
+                        <div className="flex flex-col gap-1">
+                            {item.stock !== undefined && item.stock <= 0 ? (
+                                <div className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    Habis
+                                </div>
+                            ) : item.isPopular ? (
+                                <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                    ⭐ Popular
+                                </div>
+                            ) : null}
+                        </div>
+                        {item.category === "kagi-spicy-series" && (
+                            <div className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                🌶️ Pedas
+                            </div>
+                        )}
                     </div>
-                ) : item.isPopular ? (
-                    <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        ⭐ Popular
-                    </div>
-                ) : null}
-
-                {/* Spicy indicator */}
-                {item.category === "kagi-spicy-series" && (
-                    <div className="absolute top-2 right-2 bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                        🌶️ Pedas
-                    </div>
-                )}
-
-                {/* Price tag */}
-                <div className="absolute bottom-2 left-2 flex flex-wrap items-center gap-1.5 bg-black/60 backdrop-blur-sm text-foreground text-sm font-bold px-3 py-1 rounded-full">
+                    <div className="mt-auto p-2">
+                        <div className="flex flex-wrap items-center gap-1.5 bg-black/60 backdrop-blur-sm text-foreground text-sm font-bold px-3 py-1 rounded-full w-fit">
                     {isDiscountActive(item) ? (
                         <>
                             <span className="line-through text-foreground/60">
@@ -162,6 +159,8 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                     ) : (
                         formatRupiah(getEffectivePrice(item))
                     )}
+                        </div>
+                    </div>
                 </div>
             </button>
 

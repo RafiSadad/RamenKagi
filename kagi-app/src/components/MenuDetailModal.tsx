@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import {
     Drawer,
     DrawerContent,
+    DrawerTitle,
 } from "@/components/ui/drawer";
 
 interface MenuDetailModalProps {
@@ -133,9 +134,10 @@ export default function MenuDetailModal({
     return (
         <Drawer open={isOpen} onOpenChange={onClose}>
             <DrawerContent className="bg-card border-t border-border max-h-[95vh] sm:max-h-[90vh] sm:max-w-md sm:mx-auto sm:rounded-2xl p-0 overflow-hidden">
+                <DrawerTitle className="sr-only">{item.name}</DrawerTitle>
                 <div className="mx-auto w-full max-w-md overflow-y-auto max-h-[95vh] sm:max-h-[90vh]">
-                    {/* Media Section - Full to top, no gap */}
-                    <div className="relative w-full h-64 bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden -mt-4 sm:mt-0">
+                    {/* Media Section - tinggi mengikuti asli media, lebar tetap */}
+                    <div className="relative w-full bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden -mt-4 sm:mt-0">
                         {/* Close button */}
                         <button
                             onClick={onClose}
@@ -155,25 +157,22 @@ export default function MenuDetailModal({
                                         loop
                                         playsInline
                                         autoPlay
-                                        className="absolute inset-0 w-full h-full object-cover"
+                                        className="w-full aspect-video object-cover block"
                                         aria-label={item.name}
                                     />
                                 );
                             }
                             if (media.type === "image" && media.url) {
                                 return (
-                                    <Image
+                                    <img
                                         src={media.url}
                                         alt={item.name}
-                                        fill
-                                        className="object-cover"
-                                        sizes="(max-width: 768px) 100vw, 800px"
-                                        priority
+                                        className="w-full h-auto block object-cover"
                                     />
                                 );
                             }
                             return (
-                                <div className="absolute inset-0 flex items-center justify-center text-7xl opacity-40">
+                                <div className="min-h-64 flex items-center justify-center text-7xl opacity-40">
                                     {emoji}
                                 </div>
                             );
@@ -239,10 +238,10 @@ export default function MenuDetailModal({
                                 )}
                             </div>
 
-                            {/* Description */}
-                            <p className="text-foreground/70 text-base leading-relaxed">
-                                {item.description}
-                            </p>
+                            {/* Description - full text, preserve newlines from Sanity */}
+                            <div className="text-foreground/70 text-base leading-relaxed whitespace-pre-line">
+                                {item.description || ""}
+                            </div>
 
                             {/* Add to Cart Section */}
                             <div className="pt-4 border-t border-border">
@@ -293,7 +292,7 @@ export default function MenuDetailModal({
                                         className="pt-4 border-t border-border"
                                     >
                                         <p className="text-sm font-semibold text-foreground mb-3">
-                                            💡 Cocok disandingkan dengan:
+                                            💡 Biar makin mantap:
                                         </p>
                                         <motion.button
                                             whileTap={{ scale: 0.95 }}

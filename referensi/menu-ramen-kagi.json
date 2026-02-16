@@ -5,7 +5,8 @@
         "category": "Kagi Signature",
         "price": 50000,
         "description": "Ramen kuah kaldu sapi dengan black garlic dengan topping pah...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Kuro_Garikku_zopufc.webp"
     },
     {
         "_type": "menu",
@@ -13,7 +14,8 @@
         "category": "Kagi Signature",
         "price": 57500,
         "description": "Ramen kuah kaldu sapi dengan shoyu special dan daging saikor...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261857/Kagi_Shoyu_Saikoro_xjwrah.webp"
     },
     {
         "_type": "menu",
@@ -21,7 +23,8 @@
         "category": "Kagi Signature",
         "price": 61250,
         "description": "Ramen Kuah Creamy Dengan Kuah Kaldu Dengan Smoke Beef...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261856/Beef_Miruku_fajb6s.webp"
     },
     {
         "_type": "menu",
@@ -29,7 +32,8 @@
         "category": "Kagi Signature",
         "price": 57500,
         "description": "Ramen kuah creamy gurih dengan potongan saikoro yang smoky...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261855/Saikoro_Miruku_w4zoe2.webp"
     },
     {
         "_type": "menu",
@@ -37,7 +41,8 @@
         "category": "Kagi Signature",
         "price": 47500,
         "description": "Ramen kuah kaldu ayam di lengkapi topping paha ayam dan...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Kagi_Toripaitan_kk0f7q.webp"
     },
     {
         "_type": "menu",
@@ -45,7 +50,8 @@
         "category": "Kagi Signature",
         "price": 61250,
         "description": "Ramen Kuah Kaldu Sapi Dengan Shoyu Special Dan Smoked Bee...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261856/Kagi_Shoyu_Beef_d7syve.webp"
     },
     {
         "_type": "menu",
@@ -53,7 +59,8 @@
         "category": "Kagi Signature",
         "price": 57500,
         "description": "Ramen Kuah Keju Special Yang Gurih Creamy Dengan Smoked...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261856/Chizu_Beef_jrpyri.webp"
     },
     {
         "_type": "menu",
@@ -61,7 +68,8 @@
         "category": "Kagi Signature",
         "price": 72500,
         "description": "The fusion of european and japanese flavours",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261854/Truffle_Dry_Ramen_n1pqb6.webp"
     },
     {
         "_type": "menu",
@@ -69,7 +77,8 @@
         "category": "Kagi Signature",
         "price": 55000,
         "description": "Ramen Dengan Kuah Keju Special Yang Gurih Creamy Di Lengkapi...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261854/Chizu_Saikoro_msithn.webp"
     },
     {
         "_type": "menu",
@@ -101,7 +110,8 @@
         "category": "Kagi Donburi",
         "price": 43750,
         "description": "Nasi Dengan Topping Ayam Teriyaki Dan Scramble Egg",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261855/Chicken_Teriyaki_Don_kimjuy.webp"
     },
     {
         "_type": "menu",
@@ -109,7 +119,8 @@
         "category": "Kagi Donburi",
         "price": 43750,
         "description": "Nasi Dengan Topping Chicken Crispy Di Balut Saus Pedas Mani...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261854/Nanban_Chicken_Donburi_tmqjxz.webp"
     },
     {
         "_type": "menu",
@@ -117,7 +128,8 @@
         "category": "Kagi Spicy Series",
         "price": 52500,
         "description": "Ramen Kuah Kaldu Ayam Kental Yang Pedas Gurih Dengan...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Spicy_Toripaitan_lzz7cr.webp"
     },
     {
         "_type": "menu",
@@ -125,7 +137,8 @@
         "category": "Kagi Spicy Series",
         "price": 67500,
         "description": "Ramen Kuah Creamy Kental Bercampur Cabe Racikan Khas...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261853/Saikoro_Miruku_Spicy_nhnq9p.webp"
     },
     {
         "_type": "menu",
@@ -133,7 +146,8 @@
         "category": "Kagi Spicy Series",
         "price": 65000,
         "description": "Ramen Kuah Keju Gurih Dan Lembut Bercampur Rasa Pedas...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Chizu_Beef_Spicy_ouqpno.webp"
     },
     {
         "_type": "menu",
@@ -141,7 +155,8 @@
         "category": "Kagi Spicy Series",
         "price": 67500,
         "description": "Ramen Kuah Keju Yang Gurih Dan Lembut Bercampur Dengan Cab...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261853/Chizu_Saikoro_Spicy_zsrbgp.webp"
     },
     {
         "_type": "menu",
@@ -157,7 +172,8 @@
         "category": "Small Dishes",
         "price": 31250,
         "description": "Potongan Kecil Ayam Goreng Ala Jepang Yang Juicy Yang Crispy",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261854/Chicken_Karaage_l3o6il.webp"
     },
     {
         "_type": "menu",
@@ -165,7 +181,8 @@
         "category": "Small Dishes",
         "price": 35000,
         "description": "Potongan Kecil Ayam Goreng Ala Jepang Yang Juicy Dan Crispy D...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261853/Karaage_Mentai_fbzbt1.webp"
     },
     {
         "_type": "menu",
@@ -173,7 +190,8 @@
         "category": "Small Dishes",
         "price": 35000,
         "description": "Pangsit Ala Jepang Dengan Isian Daging Ayam Juicy Yang Di Steam",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261853/Gyoza_pfc3u1.webp"
     },
     {
         "_type": "menu",
@@ -181,7 +199,8 @@
         "category": "Small Dishes",
         "price": 40000,
         "description": "Pangsit Ala Jepang Dengan Isian Daging Ayam Di Padukan Denga...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261855/Kimchi_Gyoza_ktbask.webp"
     },
     {
         "_type": "menu",
@@ -189,7 +208,8 @@
         "category": "Small Dishes",
         "price": 37500,
         "description": "Sate Paha Ayam Dengan Bumbu Yakiniku",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Yakitori_csf7cx.webp"
     },
     {
         "_type": "menu",
@@ -197,7 +217,8 @@
         "category": "Small Dishes",
         "price": 25000,
         "description": "Telur tebal dan lembut dengan rasa gurih manis",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Tamagoyaki_uhuqzf.webp"
     },
     {
         "_type": "menu",
@@ -205,7 +226,8 @@
         "category": "Small Dishes",
         "price": 25000,
         "description": "Kentang Goreng Yang Di Lengkapi Dengan Sosis Goreng",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Kentang_Sosis_sn1ous.webp"
     },
     {
         "_type": "menu",
@@ -213,7 +235,8 @@
         "category": "Small Dishes",
         "price": 25000,
         "description": "Jagung manis yang di bakar dengan saus special di lengkapi...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Tomoro_Koshi_jllgn9.webp"
     },
     {
         "_type": "menu",
@@ -269,7 +292,8 @@
         "category": "Kids Menu",
         "price": 40000,
         "description": "Sajian Bento Porsi Anak Dengan Beef Slice Bumbu Yakiniku Mani...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Yakiniku_Bento_wbkjfv.webp"
     },
     {
         "_type": "menu",
@@ -277,7 +301,8 @@
         "category": "Kids Menu",
         "price": 30000,
         "description": "Sajian Bento Dengan Nasi Porsi Anak Dengan Chicken Katsu Yan...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Katsu_Bento_yo81rb.webp"
     },
     {
         "_type": "menu",
@@ -285,7 +310,8 @@
         "category": "Kids Menu",
         "price": 30000,
         "description": "Sajian Bento Anak Dengan Ayam Popcrorn Gurih Manis, Dilengka...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261851/Toripop_Bento_rsqvc4.webp"
     },
     {
         "_type": "menu",
@@ -293,7 +319,8 @@
         "category": "Kids Menu",
         "price": 36250,
         "description": "Ramen Porsi Anak Dengan Kuah Keju Yang Gurih Dan...",
-        "hasPhoto": true
+        "hasPhoto": true,
+        "photoUrl": "https://res.cloudinary.com/drft8jgct/image/upload/v1771261852/Kochizu_Ramen_gilges.webp"
     },
     {
         "_type": "menu",
