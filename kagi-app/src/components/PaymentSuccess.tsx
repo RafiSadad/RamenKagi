@@ -241,40 +241,49 @@ function ReceiptContentForCapture({ order, totalItems, currentDate }: { order: O
     );
 }
 
-/** Capture receipt element to PNG blob (shared by Unduh & Bagikan) */
+const CAPTURE_TIMEOUT_MS = 12000;
+
+/** Capture receipt element to PNG blob (shared by Unduh & Bagikan). Timeout agar tidak hang di Safari/iOS. */
 async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> {
-    const originalTransform = element.style.transform;
-    const originalTransformStyle = element.style.transformStyle;
-    const originalVisibility = element.style.visibility;
-    const originalOpacity = element.style.opacity;
-    element.style.transform = "none";
-    element.style.transformStyle = "flat";
-    element.style.visibility = "visible";
-    element.style.opacity = "1";
-    await new Promise((r) => setTimeout(r, 150));
+    const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error("Capture timeout")), CAPTURE_TIMEOUT_MS)
+    );
+    const capturePromise = (async (): Promise<Blob | null> => {
+        const originalTransform = element.style.transform;
+        const originalTransformStyle = element.style.transformStyle;
+        const originalVisibility = element.style.visibility;
+        const originalOpacity = element.style.opacity;
+        element.style.transform = "none";
+        element.style.transformStyle = "flat";
+        element.style.visibility = "visible";
+        element.style.opacity = "1";
+        await new Promise((r) => setTimeout(r, 150));
 
-    const { default: html2canvas } = await import("html2canvas");
-    const canvas = await html2canvas(element, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        logging: false,
-        useCORS: true,
-        allowTaint: false,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-        onclone(_, clonedEl) {
-            (clonedEl as HTMLElement).style.visibility = "visible";
-            (clonedEl as HTMLElement).style.opacity = "1";
-        },
-    });
-    element.style.transform = originalTransform;
-    element.style.transformStyle = originalTransformStyle;
-    element.style.visibility = originalVisibility;
-    element.style.opacity = originalOpacity;
+        const { default: html2canvas } = await import("html2canvas");
+        const isNarrow = typeof window !== "undefined" && window.innerWidth < 400;
+        const canvas = await html2canvas(element, {
+            backgroundColor: "#ffffff",
+            scale: isNarrow ? 1.5 : 2,
+            logging: false,
+            useCORS: true,
+            allowTaint: false,
+            windowWidth: element.scrollWidth,
+            windowHeight: element.scrollHeight,
+            onclone(_, clonedEl) {
+                (clonedEl as HTMLElement).style.visibility = "visible";
+                (clonedEl as HTMLElement).style.opacity = "1";
+            },
+        });
+        element.style.transform = originalTransform;
+        element.style.transformStyle = originalTransformStyle;
+        element.style.visibility = originalVisibility;
+        element.style.opacity = originalOpacity;
 
-    return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob ?? null), "image/png");
-    });
+        return new Promise<Blob | null>((resolve) => {
+            canvas.toBlob((blob) => resolve(blob ?? null), "image/png");
+        });
+    })();
+    return Promise.race([capturePromise, timeoutPromise]);
 }
 
 function isMobile(): boolean {
@@ -297,7 +306,25 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     const [isSaving, setIsSaving] = useState(false);
     const [imageReady, setImageReady] = useState(false);
 
-    // Generate gambar nota sekali saat payment success (modal sudah tampil)
+    // Upload ke Supabase + kirim ke Telegram (dipanggil setelah gambar siap)
+    function sendReceiptToCloud(blob: Blob) {
+        const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
+        blobToDataUrl(blob).then((dataUrl) => {
+            fetch("/api/receipt/upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    image: dataUrl,
+                    filename,
+                    orderId: order.orderId || undefined,
+                }),
+            }).catch((err) => {
+                console.error("Upload nota ke bucket/Telegram gagal:", err?.error ?? err?.detail ?? err);
+            });
+        });
+    }
+
+    // Generate gambar nota sekali saat payment success → langsung kirim ke Telegram + bucket
     useEffect(() => {
         let cancelled = false;
         const t = setTimeout(async () => {
@@ -309,7 +336,10 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             if (el) {
                 try {
                     const blob = await captureReceiptToBlob(el);
-                    if (!cancelled && blob) receiptBlobRef.current = blob;
+                    if (!cancelled && blob) {
+                        receiptBlobRef.current = blob;
+                        sendReceiptToCloud(blob);
+                    }
                 } catch {
                     // ignore; getReceiptBlob() will capture on demand when user clicks
                 }
@@ -337,21 +367,45 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
     const handleSaveImage = async () => {
         setIsSaving(true);
+        const forceDone = setTimeout(() => {
+            setIsSaving(false);
+            toast.error("Proses terlalu lama. Coba gunakan \"Bagikan Nota\" atau coba lagi.");
+        }, 18000);
         try {
             const blob = await getReceiptBlob();
             if (!blob) {
                 toast.error("Gagal menyimpan gambar");
+                clearTimeout(forceDone);
                 setIsSaving(false);
                 return;
             }
             const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
+            const file = new File([blob], filename, { type: "image/png" });
 
-            // Langsung download (desktop: link.download; mobile: buka data URL di tab baru)
             if (isMobile()) {
+                // iOS Safari: pakai Web Share supaya tidak hang (window.open(dataUrl) sering gagal/diblokir)
+                if (navigator.share && navigator.canShare?.({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            title: `Nota Kagi Ramen - ${order.orderId}`,
+                            text: "Nota pesanan saya",
+                            files: [file],
+                        });
+                        toast.success("Pilih \"Simpan ke Foto\" atau simpan dari menu bagikan.");
+                    } catch (err) {
+                        if ((err as Error).name !== "AbortError") {
+                            toast.error("Bagikan dibatalkan atau tidak didukung.");
+                        }
+                    }
+                    clearTimeout(forceDone);
+                    setIsSaving(false);
+                    return;
+                }
+                // Fallback: buka data URL (bisa gagal di Safari jika gambar besar)
                 const dataUrl = await blobToDataUrl(blob);
                 const opened = window.open(dataUrl, "_blank", "noopener");
                 if (opened) {
-                    toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
+                    toast.success("Tekan lama pada gambar → Simpan gambar.");
                 } else {
                     window.location.href = dataUrl;
                     toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
@@ -368,30 +422,13 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 setTimeout(() => URL.revokeObjectURL(url), 8000);
                 toast.success("Nota berhasil disimpan!");
             }
-
-            // Background: upload ke Supabase + kirim ke Telegram (tanpa block user)
-            blobToDataUrl(blob).then((dataUrl) => {
-                fetch("/api/receipt/upload", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        image: dataUrl,
-                        filename,
-                        orderId: order.orderId || undefined,
-                    }),
-                })
-                    .then((res) => {
-                        if (!res.ok) return res.json().then((d) => Promise.reject(d));
-                    })
-                    .catch((err) => {
-                        console.error("Upload nota ke bucket gagal:", err?.error ?? err?.detail ?? err);
-                        toast.error(err?.error ?? "Upload nota ke cloud gagal. Cek env SUPABASE_SERVICE_ROLE_KEY & bucket 'nota'.");
-                    });
-            });
         } catch (error) {
             console.error("Error saving image:", error);
-            toast.error(`Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
+            toast.error(error instanceof Error && error.message === "Capture timeout"
+                ? "Pembuatan gambar terlalu lama. Coba lagi atau gunakan \"Bagikan Nota\"."
+                : `Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
         } finally {
+            clearTimeout(forceDone);
             setIsSaving(false);
         }
     };
