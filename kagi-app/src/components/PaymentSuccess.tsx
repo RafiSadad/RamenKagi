@@ -285,15 +285,31 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 }
 
                 const url = URL.createObjectURL(blob);
+                const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
+                const isMobile = typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window);
+
                 const link = document.createElement("a");
                 link.href = url;
-                link.download = `nota-kagi-${order.orderId || Date.now()}.png`;
+                link.download = filename;
+                link.setAttribute("download", filename);
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                URL.revokeObjectURL(url);
 
-                toast.success("Nota berhasil disimpan!");
+                if (isMobile) {
+                    // On mobile, programmatic download often doesn't trigger; open in new tab so user can long-press → Save
+                    const newTab = window.open(url, "_blank", "noopener");
+                    if (newTab) {
+                        toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
+                        setTimeout(() => URL.revokeObjectURL(url), 30000);
+                    } else {
+                        toast.success("Nota siap. Jika unduhan tidak mulai, gunakan tombol Bagikan Nota.");
+                        setTimeout(() => URL.revokeObjectURL(url), 10000);
+                    }
+                } else {
+                    setTimeout(() => URL.revokeObjectURL(url), 10000);
+                    toast.success("Nota berhasil disimpan!");
+                }
                 setIsSaving(false);
             }, "image/png");
         } catch (error) {

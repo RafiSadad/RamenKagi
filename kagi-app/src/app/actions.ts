@@ -61,7 +61,10 @@ export async function submitOrder(order: Order) {
             const notesPart = order.notes ? `\n📝 *Catatan:* ${escapeMarkdown(order.notes)}` : "";
             const timeStr = new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" });
 
+            const orderIdDisplay = order.orderId || `KAGI-${Date.now()}`;
             const message = `🍜 *PESANAN BARU!*
+
+📋 *Order ID / No. Pesanan:* \`${escapeMarkdown(orderIdDisplay)}\`
 
 👤 *Nama:* ${customer}
 🪑 *${tableOrTakeaway}*

@@ -87,7 +87,14 @@ export async function POST(req: NextRequest) {
             const telegramChatId = process.env.TELEGRAM_CHAT_ID;
 
             if (telegramToken && telegramChatId && !telegramToken.includes("your_bot")) {
-                const message = `💰 *PEMBAYARAN BERHASIL!*\n\n📋 Order ID: \`${order_id}\`\n💵 Total: Rp ${parseFloat(gross_amount).toLocaleString("id-ID")}\n✅ Status: ${transaction_status}\n\n⏰ ${new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}`;
+                const message = `💰 *PEMBAYARAN BERHASIL!*
+
+📋 *Order ID / No. Pesanan:* \`${order_id}\`
+
+💵 Total: Rp ${parseFloat(gross_amount).toLocaleString("id-ID")}
+✅ Status: ${transaction_status}
+
+⏰ ${new Date().toLocaleString("id-ID", { timeZone: "Asia/Jakarta" })}`;
 
                 await fetch(
                     `https://api.telegram.org/bot${telegramToken}/sendMessage`,
