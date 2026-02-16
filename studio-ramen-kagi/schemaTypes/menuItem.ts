@@ -20,13 +20,13 @@ export const menuItem = defineType({
         }),
         defineField({
             name: 'mediaUrl',
-            title: 'Media URL (Cloudinary)',
+            title: 'Media URL untuk Card (Cloudinary)',
             type: 'url',
-            description: 'Link gambar atau video dari Cloudinary. Tidak di-upload ke Sanity (hemat limit). Rasio disarankan 1:1 atau 4:3. Lihat ASSETS_GUIDE.md.',
+            description: 'Media untuk tampilan di card/grid menu. Gambar atau video pendek dari Cloudinary. Rasio disarankan 1:1 atau 4:3. Lihat ASSETS_GUIDE.md.',
         }),
         defineField({
             name: 'mediaType',
-            title: 'Tipe Media',
+            title: 'Tipe Media (Card)',
             type: 'string',
             options: {
                 list: [
@@ -37,6 +37,26 @@ export const menuItem = defineType({
             },
             description: 'Pilih apakah mediaUrl berisi gambar atau video.',
             hidden: ({ parent }) => !parent?.mediaUrl,
+        }),
+        defineField({
+            name: 'detailMediaUrl',
+            title: 'Media URL untuk Detail Modal (Cloudinary)',
+            type: 'url',
+            description: 'Media untuk tampilan di modal detail (full deskripsi). Bisa video lebih panjang/detail atau gambar resolusi lebih tinggi. Jika kosong, akan menggunakan mediaUrl. Rasio disarankan 16:9 atau 4:3.',
+        }),
+        defineField({
+            name: 'detailMediaType',
+            title: 'Tipe Media (Detail)',
+            type: 'string',
+            options: {
+                list: [
+                    { title: 'Gambar', value: 'image' },
+                    { title: 'Video', value: 'video' },
+                ],
+                layout: 'radio',
+            },
+            description: 'Pilih apakah detailMediaUrl berisi gambar atau video.',
+            hidden: ({ parent }) => !parent?.detailMediaUrl,
         }),
         defineField({
             name: 'price',

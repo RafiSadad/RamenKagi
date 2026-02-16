@@ -10,7 +10,8 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onCartClick }: NavbarProps) {
-    const totalItems = useCartStore((s) => s.getTotalItems());
+    const items = useCartStore((s) => s.items);
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
     return (
         <nav className="sticky top-0 z-50 backdrop-blur-md bg-background/90 border-b border-border">

@@ -36,10 +36,14 @@ export interface MenuItem {
   _id: string;
   name: string;
   slug: string;
-  /** Cloudinary URL (image or video). Prefer over image/videoUrl. */
+  /** Cloudinary URL (image or video) untuk card/grid. Prefer over image/videoUrl. */
   mediaUrl?: string | null;
-  /** "image" | "video" */
+  /** "image" | "video" - untuk card/grid */
   mediaType?: "image" | "video" | null;
+  /** Cloudinary URL untuk modal detail (bisa video lebih panjang/detail). Jika kosong, fallback ke mediaUrl. */
+  detailMediaUrl?: string | null;
+  /** "image" | "video" - untuk modal detail */
+  detailMediaType?: "image" | "video" | null;
   /** @deprecated Use mediaUrl + mediaType. Kept for backward compat. */
   image?: string | null;
   /** @deprecated Use mediaUrl + mediaType. Kept for backward compat. */

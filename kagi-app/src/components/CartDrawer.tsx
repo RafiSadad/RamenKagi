@@ -28,7 +28,10 @@ export default function CartDrawer({
     categories,
     menuItems,
 }: CartDrawerProps) {
-    const { items, getTotalPrice, getTotalItems } = useCartStore();
+    const items = useCartStore((s) => s.items);
+    const getTotalPrice = useCartStore((s) => s.getTotalPrice);
+    const getTotalItems = useCartStore((s) => s.getTotalItems);
+    const totalItems = items.reduce((total, item) => total + item.quantity, 0);
 
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
@@ -39,9 +42,9 @@ export default function CartDrawer({
                             <DrawerTitle className="text-card-foreground flex items-center gap-2">
                                 <ShoppingCart className="w-5 h-5 text-primary" />
                                 Keranjang
-                                {getTotalItems() > 0 && (
+                                {totalItems > 0 && (
                                     <span className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                                        {getTotalItems()}
+                                        {totalItems}
                                     </span>
                                 )}
                             </DrawerTitle>

@@ -30,7 +30,13 @@ export default function MenuGrid({ categories, menuItems }: MenuGridProps) {
                 <motion.div layout className="grid grid-cols-2 gap-3">
                     <AnimatePresence mode="popLayout">
                         {filteredItems.map((item, i) => (
-                            <MenuCard key={item._id} item={item} index={i} />
+                            <MenuCard 
+                                key={item._id} 
+                                item={item} 
+                                index={i}
+                                menuItems={menuItems}
+                                categories={categories}
+                            />
                         ))}
                     </AnimatePresence>
                 </motion.div>

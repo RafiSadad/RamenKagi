@@ -20,6 +20,7 @@ export async function getMenuItems() {
         `*[_type == "menuItem"] {
             _id, name, "slug": slug.current,
             mediaUrl, mediaType,
+            detailMediaUrl, detailMediaType,
             "image": image.asset->url,
             videoUrl,
             price, description,

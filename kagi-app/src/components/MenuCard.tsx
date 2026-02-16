@@ -7,10 +7,15 @@ import { formatRupiah } from "@/lib/utils";
 import { MenuItem, getEffectivePrice, isDiscountActive } from "@/types/menu";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
+import { useState } from "react";
+import MenuDetailModal from "./MenuDetailModal";
+import type { Category } from "@/types/menu";
 
 interface MenuCardProps {
     item: MenuItem;
     index: number;
+    menuItems: MenuItem[];
+    categories: Category[];
 }
 
 const CATEGORY_EMOJI: Record<string, string> = {
@@ -22,10 +27,11 @@ const CATEGORY_EMOJI: Record<string, string> = {
     "additional": "➕",
 };
 
-export default function MenuCard({ item, index }: MenuCardProps) {
+export default function MenuCard({ item, index, menuItems, categories }: MenuCardProps) {
     const addItem = useCartStore((s) => s.addItem);
     const updateQuantity = useCartStore((s) => s.updateQuantity);
     const cartItems = useCartStore((s) => s.items);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     const isSoldOut = item.stock !== undefined && item.stock <= 0;
     
@@ -70,7 +76,11 @@ export default function MenuCard({ item, index }: MenuCardProps) {
             className="group relative bg-foreground/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all"
         >
             {/* Media: Cloudinary (mediaUrl+mediaType) > legacy videoUrl/image > placeholder */}
-            <div className="relative h-36 bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden">
+            <button
+                onClick={() => setIsModalOpen(true)}
+                className="relative h-36 w-full bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
+                aria-label={`Lihat detail ${item.name}`}
+            >
                 {item.mediaUrl && item.mediaType === "video" ? (
                     <video
                         src={item.mediaUrl}
@@ -153,7 +163,7 @@ export default function MenuCard({ item, index }: MenuCardProps) {
                         formatRupiah(getEffectivePrice(item))
                     )}
                 </div>
-            </div>
+            </button>
 
             {/* Content */}
             <div className="p-3">
@@ -200,6 +210,15 @@ export default function MenuCard({ item, index }: MenuCardProps) {
                     </motion.button>
                 )}
             </div>
+
+            {/* Menu Detail Modal */}
+            <MenuDetailModal
+                item={item}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                menuItems={menuItems}
+                categories={categories}
+            />
         </motion.div>
     );
 }
