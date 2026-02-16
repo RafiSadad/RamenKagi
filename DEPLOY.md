@@ -145,7 +145,11 @@ Kode nota (upload + cron) sudah ada di **kagi-app**; begitu deploy, API ikut ter
    Tidak perlu konfigurasi tambahan. Jadwal ada di **kagi-app/vercel.json** (`/api/cron/clean-receipts`, sekali sehari). Setelah deploy, Vercel otomatis jalankan cron di production.
 
 4. **Supabase Storage**  
-   Bucket **`receipts`** akan dibuat otomatis saat pertama kali ada user yang simpan nota (jika belum ada). Kalau mau buat manual: Supabase Dashboard → Storage → New bucket → nama `nota`, **Public** on.
+   Bucket **`nota`** harus ada dan **Public** (supaya link gambar bisa dibuka):
+   - Supabase Dashboard → **Storage** → **Buckets**.
+   - Kalau bucket `nota` sudah ada: klik **nota** → **Settings** / **Policies** → pastikan **Public bucket** aktif (atau ada policy yang mengizinkan public read).
+   - Kalau belum: **New bucket** → nama `nota` → centang **Public bucket** → Create.
+   - Upload dari app pakai Service Role Key (bypass RLS), jadi tidak perlu policy khusus untuk insert.
 
 Setelah itu: user simpan nota → upload ke Storage → foto ke Telegram → link dibuka user. File di Storage dihapus cron tiap hari (yang umur > 3 hari).
 

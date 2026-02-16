@@ -3,7 +3,7 @@ import { updateSession } from "@/lib/supabase/middleware";
 
 const ADMIN_HOST = process.env.NEXT_PUBLIC_ADMIN_HOST; // e.g. dashboard.ramenkagi.com
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     // Subdomain admin: dashboard.ramenkagi.com → /admin
     if (ADMIN_HOST && request.nextUrl.hostname === ADMIN_HOST && request.nextUrl.pathname === "/") {
         return NextResponse.redirect(new URL("/admin", request.url));

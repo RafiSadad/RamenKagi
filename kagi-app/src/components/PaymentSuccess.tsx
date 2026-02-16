@@ -283,60 +283,75 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 
 export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
+    const receiptBlobRef = useRef<Blob | null>(null);
     const [isSaving, setIsSaving] = useState(false);
+    const [imageReady, setImageReady] = useState(false);
+
+    // Generate gambar nota sekali saat payment success (modal sudah tampil)
+    useEffect(() => {
+        if (!receiptRef.current) return;
+        const t = setTimeout(async () => {
+            const blob = await captureReceiptToBlob(receiptRef.current!);
+            if (blob) receiptBlobRef.current = blob;
+            setImageReady(true);
+        }, 600);
+        return () => clearTimeout(t);
+    }, [order.orderId]);
+
+    const getReceiptBlob = async (): Promise<Blob | null> => {
+        if (receiptBlobRef.current) return receiptBlobRef.current;
+        if (!receiptRef.current) return null;
+        const blob = await captureReceiptToBlob(receiptRef.current);
+        if (blob) receiptBlobRef.current = blob;
+        return blob;
+    };
 
     const handleSaveImage = async () => {
-        if (!receiptRef.current) return;
         setIsSaving(true);
         try {
-            const blob = await captureReceiptToBlob(receiptRef.current);
+            const blob = await getReceiptBlob();
             if (!blob) {
                 toast.error("Gagal menyimpan gambar");
                 setIsSaving(false);
                 return;
             }
             const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
-            const dataUrl = await blobToDataUrl(blob);
-            const base64 = dataUrl;
 
-            const res = await fetch("/api/receipt/upload", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    image: base64,
-                    filename,
-                    orderId: order.orderId || undefined,
-                }),
-            });
-            const data = await res.json().catch(() => ({}));
-
-            if (res.ok && data.url) {
-                const opened = window.open(data.url, "_blank", "noopener");
+            // Langsung download (desktop: link.download; mobile: buka data URL di tab baru)
+            if (isMobile()) {
+                const dataUrl = await blobToDataUrl(blob);
+                const opened = window.open(dataUrl, "_blank", "noopener");
                 if (opened) {
-                    toast.success(
-                        isMobile()
-                            ? "Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar."
-                            : "Nota dibuka di tab baru. Klik kanan → Simpan gambar."
-                    );
+                    toast.success("Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar.");
                 } else {
-                    window.location.href = data.url;
+                    window.location.href = dataUrl;
                     toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
                 }
-                return;
+            } else {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                link.setAttribute("download", filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 8000);
+                toast.success("Nota berhasil disimpan!");
             }
 
-            // Fallback tanpa server: buka data URL (seperti sebelumnya)
-            const opened = window.open(dataUrl, "_blank", "noopener");
-            if (opened) {
-                toast.success(
-                    isMobile()
-                        ? "Nota dibuka di tab baru. Tekan lama pada gambar → Simpan gambar."
-                        : "Nota dibuka di tab baru. Klik kanan → Simpan gambar."
-                );
-            } else {
-                window.location.href = dataUrl;
-                toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
-            }
+            // Background: upload ke Supabase + kirim ke Telegram (tanpa block user)
+            blobToDataUrl(blob).then((dataUrl) => {
+                fetch("/api/receipt/upload", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        image: dataUrl,
+                        filename,
+                        orderId: order.orderId || undefined,
+                    }),
+                }).catch(() => {});
+            });
         } catch (error) {
             console.error("Error saving image:", error);
             toast.error(`Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -346,10 +361,9 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     };
 
     const handleShare = async () => {
-        if (!receiptRef.current) return;
         setIsSaving(true);
         try {
-            const blob = await captureReceiptToBlob(receiptRef.current);
+            const blob = await getReceiptBlob();
             if (!blob) {
                 toast.error("Gagal membagikan nota");
                 setIsSaving(false);
@@ -514,20 +528,20 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                         <motion.button
                             whileTap={{ scale: 0.97 }}
                             onClick={handleSaveImage}
-                            disabled={isSaving}
+                            disabled={isSaving || !imageReady}
                             className="w-full bg-primary text-primary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors disabled:opacity-50"
                         >
                             <Download className="w-5 h-5" />
-                            {isSaving ? "Menyimpan..." : "Simpan Nota"}
+                            {!imageReady ? "Menyiapkan nota..." : isSaving ? "Menyimpan..." : "Simpan Nota"}
                         </motion.button>
                         <motion.button
                             whileTap={{ scale: 0.97 }}
                             onClick={handleShare}
-                            disabled={isSaving}
+                            disabled={isSaving || !imageReady}
                             className="w-full bg-secondary text-secondary-foreground font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-secondary/90 transition-colors disabled:opacity-50"
                         >
                             <Share2 className="w-5 h-5" />
-                            {isSaving ? "Mempersiapkan..." : "Bagikan Nota"}
+                            {!imageReady ? "Menyiapkan nota..." : isSaving ? "Mempersiapkan..." : "Bagikan Nota"}
                         </motion.button>
                         <button
                             onClick={onClose}

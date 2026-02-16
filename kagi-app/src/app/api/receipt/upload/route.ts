@@ -1,7 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import FormData from "form-data";
 
 const BUCKET = "nota";
+
+async function sendPhotoToTelegram(buffer: Buffer, filename: string, caption: string): Promise<boolean> {
+    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = process.env.TELEGRAM_CHAT_ID;
+    if (!token || !chatId || token.includes("your_bot")) return false;
+    const form = new FormData();
+    form.append("chat_id", chatId);
+    form.append("caption", caption);
+    form.append("photo", buffer, { filename, contentType: "image/png" });
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+        method: "POST",
+        body: form as unknown as BodyInit,
+        headers: form.getHeaders() as HeadersInit,
+    });
+    if (!res.ok) {
+        console.error("Telegram sendPhoto failed:", res.status, await res.text());
+        return false;
+    }
+    return true;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -59,29 +80,10 @@ export async function POST(req: NextRequest) {
                 }
                 const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(retryData.path);
                 const publicUrl = urlData.publicUrl;
-                const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-                const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-                if (telegramToken && telegramChatId && !telegramToken.includes("your_bot")) {
-                    try {
-                        const caption = orderId
-                            ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
-                            : "📷 Nota pesanan";
-                        const formData = new FormData();
-                        formData.append("chat_id", telegramChatId);
-                        formData.append("caption", caption);
-                        formData.append("photo", new Blob([buffer], { type: "image/png" }), safeName);
-                        const tgRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
-                            method: "POST",
-                            body: formData,
-                        });
-                        if (!tgRes.ok) {
-                            const errBody = await tgRes.text();
-                            console.error("Telegram sendPhoto failed:", tgRes.status, errBody);
-                        }
-                    } catch (err) {
-                        console.error("Telegram sendPhoto error:", err);
-                    }
-                }
+                const caption = orderId
+                    ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
+                    : "📷 Nota pesanan";
+                await sendPhotoToTelegram(buffer, safeName, caption);
                 return NextResponse.json({ url: publicUrl });
             }
             console.error("Receipt upload error:", error);
@@ -91,30 +93,10 @@ export async function POST(req: NextRequest) {
         const { data: urlData } = supabase.storage.from(BUCKET).getPublicUrl(data.path);
         const publicUrl = urlData.publicUrl;
 
-        const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
-        const telegramChatId = process.env.TELEGRAM_CHAT_ID;
-        if (telegramToken && telegramChatId && !telegramToken.includes("your_bot")) {
-            try {
-                const caption = orderId
-                    ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
-                    : "📷 Nota pesanan";
-                const formData = new FormData();
-                formData.append("chat_id", telegramChatId);
-                formData.append("caption", caption);
-                formData.append("photo", new Blob([buffer], { type: "image/png" }), safeName);
-                const tgRes = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
-                    method: "POST",
-                    body: formData,
-                });
-                if (!tgRes.ok) {
-                    const errBody = await tgRes.text();
-                    console.error("Telegram sendPhoto failed:", tgRes.status, errBody);
-                }
-            } catch (err) {
-                console.error("Telegram sendPhoto error:", err);
-            }
-        }
-
+        const caption = orderId
+            ? `📷 Nota pesanan\n📋 No. Pesanan: ${orderId}`
+            : "📷 Nota pesanan";
+        await sendPhotoToTelegram(buffer, safeName, caption);
         return NextResponse.json({ url: publicUrl });
     } catch (e) {
         console.error("Receipt upload exception:", e);
