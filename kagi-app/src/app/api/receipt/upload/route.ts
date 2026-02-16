@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import FormData from "form-data";
 
 const BUCKET = "nota";
 
 async function sendPhotoToTelegram(buffer: Buffer, filename: string, caption: string): Promise<boolean> {
     const token = process.env.TELEGRAM_BOT_TOKEN;
     const chatId = process.env.TELEGRAM_CHAT_ID;
-    if (!token || !chatId || token.includes("your_bot")) return false;
+    if (!token || !chatId || token.includes("your_bot")) {
+        if (!token || token.includes("your_bot")) {
+            console.warn("Telegram: TELEGRAM_BOT_TOKEN tidak set atau masih placeholder. Gambar nota tidak dikirim ke Telegram.");
+        } else if (!chatId) {
+            console.warn("Telegram: TELEGRAM_CHAT_ID tidak set. Gambar nota tidak dikirim ke Telegram.");
+        }
+        return false;
+    }
     const form = new FormData();
     form.append("chat_id", chatId);
     form.append("caption", caption);
-    form.append("photo", buffer, { filename, contentType: "image/png" });
+    form.append("photo", new Blob([buffer], { type: "image/png" }), filename);
     const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
         method: "POST",
-        body: form as unknown as BodyInit,
-        headers: form.getHeaders() as HeadersInit,
+        body: form,
     });
     if (!res.ok) {
-        console.error("Telegram sendPhoto failed:", res.status, await res.text());
+        const text = await res.text();
+        console.error("Telegram sendPhoto failed:", res.status, text);
         return false;
     }
     return true;
