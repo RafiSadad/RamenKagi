@@ -245,10 +245,20 @@ const CAPTURE_TIMEOUT_MS = 12000;
 
 /** Capture receipt element to PNG blob (shared by Unduh & Bagikan). Timeout agar tidak hang di Safari/iOS. */
 async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> {
+    const startTime = Date.now();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:247',message:'captureReceiptToBlob START',data:{timeout:CAPTURE_TIMEOUT_MS,elementReady:!!element,scrollWidth:element?.scrollWidth,scrollHeight:element?.scrollHeight},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error("Capture timeout")), CAPTURE_TIMEOUT_MS)
+        setTimeout(() => {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:250',message:'TIMEOUT TRIGGERED',data:{elapsed:Date.now()-startTime,timeout:CAPTURE_TIMEOUT_MS},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
+            reject(new Error("Capture timeout"));
+        }, CAPTURE_TIMEOUT_MS)
     );
     const capturePromise = (async (): Promise<Blob | null> => {
+        const styleStartTime = Date.now();
         const originalTransform = element.style.transform;
         const originalTransformStyle = element.style.transformStyle;
         const originalVisibility = element.style.visibility;
@@ -258,9 +268,17 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
         element.style.visibility = "visible";
         element.style.opacity = "1";
         await new Promise((r) => setTimeout(r, 150));
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:260',message:'Style applied, waiting for render',data:{elapsed:Date.now()-styleStartTime},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
 
+        const importStartTime = Date.now();
         const { default: html2canvas } = await import("html2canvas");
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:263',message:'html2canvas imported',data:{elapsed:Date.now()-importStartTime},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         const isNarrow = typeof window !== "undefined" && window.innerWidth < 400;
+        const canvasStartTime = Date.now();
         const canvas = await html2canvas(element, {
             backgroundColor: "#ffffff",
             scale: isNarrow ? 1.5 : 2,
@@ -274,16 +292,36 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
                 (clonedEl as HTMLElement).style.opacity = "1";
             },
         });
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:276',message:'html2canvas completed',data:{elapsed:Date.now()-canvasStartTime,canvasWidth:canvas.width,canvasHeight:canvas.height},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         element.style.transform = originalTransform;
         element.style.transformStyle = originalTransformStyle;
         element.style.visibility = originalVisibility;
         element.style.opacity = originalOpacity;
 
+        const blobStartTime = Date.now();
         return new Promise<Blob | null>((resolve) => {
-            canvas.toBlob((blob) => resolve(blob ?? null), "image/png");
+            canvas.toBlob((blob) => {
+                // #region agent log
+                fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:283',message:'Blob created',data:{elapsed:Date.now()-blobStartTime,totalElapsed:Date.now()-startTime,blobSize:blob?.size},timestamp:Date.now()})}).catch(()=>{});
+                // #endregion
+                resolve(blob ?? null);
+            }, "image/png");
         });
     })();
-    return Promise.race([capturePromise, timeoutPromise]);
+    try {
+        const result = await Promise.race([capturePromise, timeoutPromise]);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:286',message:'captureReceiptToBlob SUCCESS',data:{totalElapsed:Date.now()-startTime,hasBlob:!!result},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        return result;
+    } catch (error) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:289',message:'captureReceiptToBlob ERROR',data:{totalElapsed:Date.now()-startTime,error:error instanceof Error?error.message:String(error)},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
+        throw error;
+    }
 }
 
 function isMobile(): boolean {
@@ -394,6 +432,9 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     }, [order.orderId]);
 
     const getReceiptBlob = async (): Promise<Blob | null> => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:396',message:'getReceiptBlob called',data:{hasCachedBlob:!!receiptBlobRef.current,hasReceiptRef:!!receiptRef.current},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         if (receiptBlobRef.current) return receiptBlobRef.current;
         if (!receiptRef.current) return null;
         const blob = await captureReceiptToBlob(receiptRef.current);
@@ -511,8 +552,15 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
     const handleShare = async () => {
         setIsSaving(true);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:512',message:'handleShare START',data:{hasCachedBlob:!!receiptBlobRef.current,isMobile:isMobile()},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         try {
+            const blobStartTime = Date.now();
             const blob = await getReceiptBlob();
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:516',message:'getReceiptBlob completed',data:{elapsed:Date.now()-blobStartTime,hasBlob:!!blob,blobSize:blob?.size},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
             if (!blob) {
                 toast.error("Gagal membagikan nota");
                 setIsSaving(false);
