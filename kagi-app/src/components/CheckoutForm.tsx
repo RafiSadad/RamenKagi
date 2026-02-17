@@ -133,16 +133,26 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
             )}
             <form
                 onSubmit={handleSubmit}
-                className="mt-3 space-y-2"
+                className="mt-4 space-y-3"
             >
-            <h3 className="text-card-foreground font-semibold text-xs">📝 Detail Pesanan</h3>
+            <div className="h-px bg-border" />
+            <h3 className="text-card-foreground font-bold text-sm">📝 Detail Pesanan</h3>
 
-            {/* Dine In / Takeaway dulu */}
-            <div className="flex items-center gap-2">
+            {/* Name — text-base (16px) prevents Safari iOS from zooming on focus */}
+            <input
+                type="text"
+                placeholder="Nama kamu, Teman Kagi"
+                value={form.customerName}
+                onChange={(e) => setForm({ ...form, customerName: e.target.value })}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+            />
+
+            {/* Takeaway toggle */}
+            <div className="flex items-center gap-3">
                 <button
                     type="button"
                     onClick={() => setForm({ ...form, isTakeaway: false })}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${!form.isTakeaway
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${!form.isTakeaway
                         ? "bg-primary text-primary-foreground"
                         : "bg-input text-muted-foreground border border-border"
                         }`}
@@ -152,7 +162,7 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 <button
                     type="button"
                     onClick={() => { setForm({ ...form, isTakeaway: true, tableNumber: "" }); setTableNumberError(""); }}
-                    className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${form.isTakeaway
+                    className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${form.isTakeaway
                         ? "bg-primary text-primary-foreground"
                         : "bg-input text-muted-foreground border border-border"
                         }`}
@@ -161,40 +171,37 @@ export default function CheckoutForm({ onSuccess, menuItems }: CheckoutFormProps
                 </button>
             </div>
 
-            {/* Nama + No. meja satu baris (dine-in) / Nama saja (takeaway) */}
-            <div className="flex gap-2 flex-wrap">
-                <input
-                    type="text"
-                    placeholder="Nama"
-                    value={form.customerName}
-                    onChange={(e) => setForm({ ...form, customerName: e.target.value })}
-                    className="flex-1 min-w-[120px] bg-input border border-border rounded-lg px-3 py-2 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
-                />
-                {!form.isTakeaway && (
+            {/* Table number */}
+            {!form.isTakeaway && (
+                <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                >
                     <input
                         type="text"
                         inputMode="numeric"
-                        placeholder="No. meja"
+                        placeholder="Nomor meja (coba liat di meja)"
                         value={form.tableNumber}
                         onChange={(e) => {
                             setForm({ ...form, tableNumber: e.target.value });
                             setTableNumberError("");
                         }}
-                        className={`w-20 bg-input border rounded-lg px-3 py-2 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors shrink-0 ${tableNumberError ? "border-destructive" : "border-border focus:border-primary/50"}`}
+                        className={`w-full bg-input border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors ${tableNumberError ? "border-destructive" : "border-border focus:border-primary/50"}`}
                     />
-                )}
-            </div>
-            {!form.isTakeaway && tableNumberError && (
-                <p className="text-destructive text-xs -mt-0.5">{tableNumberError}</p>
+                    {tableNumberError && (
+                        <p className="text-destructive text-sm mt-1">{tableNumberError}</p>
+                    )}
+                </motion.div>
             )}
 
-            {/* Catatan — satu baris */}
-            <input
-                type="text"
-                placeholder="Catatan (opsional)"
+            {/* Notes — text-base prevents Safari iOS zoom on focus */}
+            <textarea
+                placeholder="Catatan untuk dapur (opsional)"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                className="w-full bg-input border border-border rounded-lg px-3 py-2 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors"
+                rows={2}
+                className="w-full bg-input border border-border rounded-xl px-4 py-2.5 text-card-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus-visible:ring-2 focus-visible:ring-ring transition-colors resize-none"
             />
 
             {/* Pay Button */}

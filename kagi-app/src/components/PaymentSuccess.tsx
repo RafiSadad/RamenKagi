@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Share2, CheckCircle2, X, Send } from "lucide-react";
+import { Download, Share2, CheckCircle2, X } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { getEffectivePrice } from "@/types/menu";
 import type { Order } from "@/types/menu";
@@ -305,9 +305,6 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     const receiptBlobRef = useRef<Blob | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [imageReady, setImageReady] = useState(false);
-    const [sendToKitchenStatus, setSendToKitchenStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
-    const [useSendButton, setUseSendButton] = useState(false);
-    useEffect(() => setUseSendButton(isSafariOrNeedsNewTab()), []);
 
     // Di Safari/iOS request dari halaman utama sering diblokir; kirim lewat tab baru.
     function isSafariOrNeedsNewTab(): boolean {
@@ -404,42 +401,6 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
         return blob;
     };
 
-    // Safari: buka about:blank dulu lalu arahkan ke URL (pola yang biasa dipakai agar popup + fetch jalan).
-    const handleSendToKitchen = async () => {
-        const blob = await getReceiptBlob();
-        if (!blob) {
-            toast.error("Gambar nota belum siap. Tunggu sebentar lalu coba lagi.");
-            return;
-        }
-        const orderIdVal = order.orderId || `KAGI-${Date.now()}`;
-        setSendToKitchenStatus("sending");
-        const sendUrl = `${window.location.origin}/receipt/send?orderId=${encodeURIComponent(orderIdVal)}`;
-        let win: Window | null = window.open("about:blank", "_blank", "noopener");
-        if (!win) {
-            setSendToKitchenStatus("error");
-            toast.error("Izinkan popup untuk mengirim nota ke dapur.");
-            return;
-        }
-        win.location.href = sendUrl;
-        const doneHandler = (event: MessageEvent) => {
-            if (event.data?.type === "receipt-upload-done") {
-                window.removeEventListener("message", doneHandler);
-                setSendToKitchenStatus(event.data?.ok ? "sent" : "error");
-                if (event.data?.ok) toast.success("Nota terkirim ke dapur.");
-                else toast.error("Gagal mengirim ke dapur.");
-            }
-        };
-        window.addEventListener("message", doneHandler);
-        setTimeout(() => window.removeEventListener("message", doneHandler), 15000);
-        blobToDataUrl(blob).then((dataUrl) => {
-            const push = () => {
-                try {
-                    if (win && !win.closed) win.postMessage({ type: "receipt-data", dataUrl, orderId: orderIdVal }, window.location.origin);
-                } catch { /* tab closed */ }
-            };
-            setTimeout(push, 1500);
-        });
-    };
 
     const handleSaveImage = async () => {
         setIsSaving(true);
@@ -448,15 +409,24 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             toast.error("Proses terlalu lama. Coba gunakan \"Bagikan Nota\" atau coba lagi.");
         }, 18000);
         try {
-            const blob = await getReceiptBlob();
+            // Safari fix: Jika blob sudah ready, gunakan langsung tanpa async delay
+            let blob = receiptBlobRef.current;
+            const needsCapture = !blob;
+            
+            if (needsCapture) {
+                blob = await getReceiptBlob();
+            }
+            
             if (!blob) {
                 toast.error("Gagal menyimpan gambar");
                 clearTimeout(forceDone);
                 setIsSaving(false);
                 return;
             }
+            
             const filename = `nota-kagi-${order.orderId || Date.now()}.png`;
             const file = new File([blob], filename, { type: "image/png" });
+            const isSafariDesktop = isSafariOrNeedsNewTab() && !isMobile();
 
             if (isMobile()) {
                 // iOS Safari: pakai Web Share supaya tidak hang (window.open(dataUrl) sering gagal/diblokir)
@@ -486,16 +456,46 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                     window.location.href = dataUrl;
                     toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
                 }
+            } else if (isSafariDesktop) {
+                // Safari Desktop: Masalah utama adalah link.click() async diblokir
+                // Solusi: Jika blob sudah ready, trigger download secara synchronous
+                if (!needsCapture) {
+                    // Blob sudah ready - bisa trigger langsung tanpa async delay
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = filename;
+                    link.style.display = "none";
+                    document.body.appendChild(link);
+                    // Trigger click secara synchronous (dalam event handler user click)
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                    toast.success("Nota berhasil disimpan!");
+                } else {
+                    // Blob belum ready - gunakan window.open sebagai fallback
+                    const url = URL.createObjectURL(blob);
+                    const opened = window.open(url, "_blank", "noopener");
+                    if (opened) {
+                        toast.success("Nota dibuka di tab baru. Gunakan Cmd+S untuk menyimpan.");
+                    } else {
+                        const dataUrl = await blobToDataUrl(blob);
+                        window.location.href = dataUrl;
+                        toast.success("Tekan Cmd+S untuk menyimpan gambar.");
+                    }
+                    setTimeout(() => URL.revokeObjectURL(url), 10000);
+                }
             } else {
+                // Chrome/Firefox/Edge: Gunakan link.click() (bekerja dengan baik)
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
                 link.href = url;
                 link.download = filename;
-                link.setAttribute("download", filename);
+                link.style.display = "none";
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-                setTimeout(() => URL.revokeObjectURL(url), 8000);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
                 toast.success("Nota berhasil disimpan!");
             }
         } catch (error) {
@@ -677,20 +677,6 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
                     {/* Action Buttons */}
                     <div className="p-6 border-t border-border bg-card space-y-3">
-                        {useSendButton && (
-                            <motion.button
-                                whileTap={{ scale: 0.97 }}
-                                onClick={handleSendToKitchen}
-                                disabled={!imageReady || sendToKitchenStatus === "sending"}
-                                className="w-full bg-amber-600 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-amber-700 transition-colors disabled:opacity-50"
-                            >
-                                <Send className="w-5 h-5" />
-                                {sendToKitchenStatus === "idle" && "Kirim nota ke dapur"}
-                                {sendToKitchenStatus === "sending" && "Mengirim…"}
-                                {sendToKitchenStatus === "sent" && "✓ Terkirim ke dapur"}
-                                {sendToKitchenStatus === "error" && "Kirim lagi ke dapur"}
-                            </motion.button>
-                        )}
                         <motion.button
                             whileTap={{ scale: 0.97 }}
                             onClick={handleSaveImage}
