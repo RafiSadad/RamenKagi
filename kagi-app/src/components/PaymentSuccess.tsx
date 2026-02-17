@@ -404,7 +404,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
         return blob;
     };
 
-    // Safari: kirim ke dapur lewat tab baru (harus dari klik user supaya popup diizinkan)
+    // Safari: buka about:blank dulu lalu arahkan ke URL (pola yang biasa dipakai agar popup + fetch jalan).
     const handleSendToKitchen = async () => {
         const blob = await getReceiptBlob();
         if (!blob) {
@@ -414,30 +414,31 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
         const orderIdVal = order.orderId || `KAGI-${Date.now()}`;
         setSendToKitchenStatus("sending");
         const sendUrl = `${window.location.origin}/receipt/send?orderId=${encodeURIComponent(orderIdVal)}`;
-        const win = window.open(sendUrl, "_blank", "noopener");
+        let win: Window | null = window.open("about:blank", "_blank", "noopener");
         if (!win) {
             setSendToKitchenStatus("error");
             toast.error("Izinkan popup untuk mengirim nota ke dapur.");
             return;
         }
-        const handler = (event: MessageEvent) => {
-            if (event.data?.type === "receipt-send-ready" && event.data?.orderId === orderIdVal && event.source === win) {
-                blobToDataUrl(blob).then((dataUrl) => {
-                    (event.source as Window).postMessage(
-                        { type: "receipt-data", dataUrl, orderId: orderIdVal },
-                        window.location.origin
-                    );
-                });
-            }
+        win.location.href = sendUrl;
+        const doneHandler = (event: MessageEvent) => {
             if (event.data?.type === "receipt-upload-done") {
-                window.removeEventListener("message", handler);
+                window.removeEventListener("message", doneHandler);
                 setSendToKitchenStatus(event.data?.ok ? "sent" : "error");
                 if (event.data?.ok) toast.success("Nota terkirim ke dapur.");
                 else toast.error("Gagal mengirim ke dapur.");
             }
         };
-        window.addEventListener("message", handler);
-        setTimeout(() => window.removeEventListener("message", handler), 15000);
+        window.addEventListener("message", doneHandler);
+        setTimeout(() => window.removeEventListener("message", doneHandler), 15000);
+        blobToDataUrl(blob).then((dataUrl) => {
+            const push = () => {
+                try {
+                    if (win && !win.closed) win.postMessage({ type: "receipt-data", dataUrl, orderId: orderIdVal }, window.location.origin);
+                } catch { /* tab closed */ }
+            };
+            setTimeout(push, 1500);
+        });
     };
 
     const handleSaveImage = async () => {

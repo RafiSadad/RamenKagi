@@ -1,9 +1,10 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function ReceiptSendPage() {
+function ReceiptSendContent() {
     const searchParams = useSearchParams();
     const orderId = searchParams.get("orderId") ?? "";
     const [status, setStatus] = useState<"waiting" | "sending" | "ok" | "error">("waiting");
@@ -31,7 +32,7 @@ export default function ReceiptSendPage() {
                     if (res.ok) {
                         setStatus("ok");
                         setMessage("Nota terkirim ke dapur.");
-                        window.opener?.postMessage({ type: "receipt-upload-done", ok: true }, window.location.origin);
+                        try { window.opener?.postMessage({ type: "receipt-upload-done", ok: true }, window.location.origin); } catch { /* Safari may null opener */ }
                     } else {
                         return res.json().then((d) => Promise.reject(d));
                     }
@@ -39,12 +40,13 @@ export default function ReceiptSendPage() {
                 .catch((err) => {
                     setStatus("error");
                     setMessage(err?.error ?? err?.detail ?? "Gagal mengirim.");
-                    window.opener?.postMessage({ type: "receipt-upload-done", ok: false }, window.location.origin);
+                    try { window.opener?.postMessage({ type: "receipt-upload-done", ok: false }, window.location.origin); } catch { /* Safari may null opener */ }
                 });
         };
 
         window.addEventListener("message", handleMessage);
-        window.opener?.postMessage({ type: "receipt-send-ready", orderId }, window.location.origin);
+        // Jangan andalkan opener di Safari (kadang null). Opener akan push data ke sini setelah tab siap.
+        try { window.opener?.postMessage({ type: "receipt-send-ready", orderId }, window.location.origin); } catch { /* ignore */ }
 
         return () => window.removeEventListener("message", handleMessage);
     }, [orderId]);
@@ -75,5 +77,19 @@ export default function ReceiptSendPage() {
                 )}
             </div>
         </div>
+    );
+}
+
+export default function ReceiptSendPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6 text-center">
+                <div className="bg-white rounded-xl shadow-lg p-8 max-w-sm">
+                    <p className="text-gray-700">Memuat...</p>
+                </div>
+            </div>
+        }>
+            <ReceiptSendContent />
+        </Suspense>
     );
 }
