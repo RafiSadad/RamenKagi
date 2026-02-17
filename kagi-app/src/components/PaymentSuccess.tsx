@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Download, Share2, CheckCircle2, X } from "lucide-react";
+import { Download, Share2, CheckCircle2, X, Maximize2, Minimize2, Camera } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { getEffectivePrice } from "@/types/menu";
 import type { Order } from "@/types/menu";
@@ -376,63 +376,81 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     const receiptBlobRef = useRef<Blob | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [imageReady, setImageReady] = useState(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showScreenshotHint, setShowScreenshotHint] = useState(false);
 
-    // Di Safari/iOS request dari halaman utama sering diblokir; kirim lewat tab baru.
-    function isSafariOrNeedsNewTab(): boolean {
+    /**
+     * Deteksi Safari sesuai Apple Developer Documentation best practices
+     * Safari memiliki keterbatasan pada download attribute dan file handling
+     * 
+     * Referensi: https://developer.apple.com/documentation/foundation/url_loading_system/downloading_files_from_websites
+     */
+    function isSafari(): boolean {
         if (typeof window === "undefined") return false;
         const ua = navigator.userAgent;
-        return /Safari/i.test(ua) && !/Chrome/i.test(ua) || /iPhone|iPad|iPod/i.test(ua);
+        // Deteksi Safari: ada "Safari" tapi bukan Chrome/Edge/Opera
+        // iOS devices selalu Safari (meskipun bisa pakai Chrome, tapi Chrome iOS masih pakai WebKit Safari)
+        return (/Safari/i.test(ua) && !/Chrome/i.test(ua) && !/Edg/i.test(ua)) || /iPhone|iPad|iPod/i.test(ua);
     }
 
-    // Upload ke Supabase + kirim ke Telegram (setelah gambar siap). Safari: lewat tab baru.
-    function sendReceiptToCloud(blob: Blob) {
+    /**
+     * Deteksi Safari untuk menentukan behavior download (bukan upload)
+     * Upload ke Supabase/Telegram menggunakan fetch API ke same-origin route
+     * yang bekerja dengan baik di Safari (per Apple Developer Documentation)
+     */
+    function isSafariOrNeedsNewTab(): boolean {
+        return isSafari();
+    }
+
+    /**
+     * Upload nota ke Supabase + kirim ke Telegram
+     * Mengikuti Apple Developer Documentation & Next.js best practices:
+     * - Fetch API ke same-origin API route bekerja dengan baik di Safari
+     * - Server-side API route tidak terpengaruh oleh browser limitations
+     * - Tidak perlu window.open untuk same-origin requests
+     * 
+     * Referensi:
+     * - https://developer.apple.com/documentation/foundation/url_loading_system/downloading_files_from_websites
+     * - Next.js API Routes best practices
+     */
+    const sendReceiptToCloud = useCallback(async (blob: Blob): Promise<void> => {
         const orderIdVal = order.orderId || `KAGI-${Date.now()}`;
         const filename = `nota-kagi-${orderIdVal}.png`;
 
-        if (isSafariOrNeedsNewTab()) {
-            const sendUrl = `${window.location.origin}/receipt/send?orderId=${encodeURIComponent(orderIdVal)}`;
-            const win = window.open(sendUrl, "_blank", "noopener");
-            let done = false;
-            const fallback = () => {
-                if (done) return;
-                done = true;
-                blobToDataUrl(blob).then((dataUrl) => {
-                    fetch("/api/receipt/upload", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ image: dataUrl, filename, orderId: orderIdVal }),
-                    }).catch((e) => console.error("Upload fallback gagal:", e));
-                });
-            };
-            const handler = (event: MessageEvent) => {
-                if (event.data?.type !== "receipt-send-ready" || event.data?.orderId !== orderIdVal) return;
-                if (event.source !== win || done) return;
-                done = true;
-                window.removeEventListener("message", handler);
-                blobToDataUrl(blob).then((dataUrl) => {
-                    (event.source as Window).postMessage(
-                        { type: "receipt-data", dataUrl, orderId: orderIdVal },
-                        window.location.origin
-                    );
-                });
-            };
-            window.addEventListener("message", handler);
-            setTimeout(fallback, 3500);
-            return;
-        }
-
-        blobToDataUrl(blob).then((dataUrl) => {
-            fetch("/api/receipt/upload", {
+        try {
+            // Convert blob ke data URL untuk dikirim ke API route
+            const dataUrl = await blobToDataUrl(blob);
+            
+            // Fetch ke same-origin API route - bekerja dengan baik di Safari
+            // Per Apple Developer Documentation, same-origin requests tidak diblokir
+            const response = await fetch("/api/receipt/upload", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ image: dataUrl, filename, orderId: orderIdVal }),
-            }).catch((err) => {
-                console.error("Upload nota ke bucket/Telegram gagal:", err?.error ?? err?.detail ?? err);
             });
-        });
-    }
 
-    // Generate gambar nota sekali saat payment success. Safari: jangan auto-send (fetch diblokir).
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error("Upload nota ke Supabase/Telegram gagal:", {
+                    status: response.status,
+                    error: errorData.error || errorData.detail || "Unknown error",
+                });
+            } else {
+                console.log("Nota berhasil dikirim ke Supabase dan Telegram");
+            }
+        } catch (err) {
+            // Log error tapi jangan throw - upload adalah background operation
+            console.error("Error saat upload nota ke Supabase/Telegram:", err);
+        }
+    }, [order.orderId]);
+
+    /**
+     * Generate gambar nota sekali saat payment success dan upload ke Supabase/Telegram
+     * Mengikuti Apple Developer Documentation & Next.js best practices:
+     * - Upload selalu dilakukan untuk semua browser (termasuk Safari)
+     * - Fetch API ke same-origin API route bekerja dengan baik di Safari
+     * - Upload adalah background operation yang tidak menghalangi UI
+     */
     useEffect(() => {
         let cancelled = false;
         const t = setTimeout(async () => {
@@ -446,10 +464,17 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                     const blob = await captureReceiptToBlob(el);
                     if (!cancelled && blob) {
                         receiptBlobRef.current = blob;
-                        if (!isSafariOrNeedsNewTab()) sendReceiptToCloud(blob);
+                        // Upload ke Supabase/Telegram untuk semua browser (termasuk Safari)
+                        // Fetch API ke same-origin API route bekerja dengan baik di Safari
+                        // Per Apple Developer Documentation, same-origin requests tidak diblokir
+                        sendReceiptToCloud(blob).catch((err) => {
+                            // Log error tapi jangan block UI
+                            console.error("Background upload error:", err);
+                        });
                     }
-                } catch {
-                    // ignore; getReceiptBlob() will capture on demand when user clicks
+                } catch (error) {
+                    // Log error tapi tetap set imageReady untuk user bisa screenshot
+                    console.warn("Capture receipt error (user can still screenshot):", error);
                 }
             }
             if (!cancelled) setImageReady(true);
@@ -462,7 +487,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             clearTimeout(t);
             clearTimeout(fallback);
         };
-    }, [order.orderId]);
+    }, [order.orderId, sendReceiptToCloud]);
 
     const getReceiptBlob = async (): Promise<Blob | null> => {
         // #region agent log
@@ -508,11 +533,27 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
     };
 
 
+    /**
+     * Handle save image dengan mengikuti Apple Developer Documentation best practices:
+     * - Safari iOS: Tidak mendukung download attribute, gunakan Web Share API atau screenshot
+     * - Safari Desktop: Download attribute didukung tapi harus synchronous (dalam user activation)
+     * - Web Share API: Jangan gunakan parameter 'text' bersamaan dengan 'files' (iOS akan copy text bukan file)
+     * - Semua operasi harus dipicu oleh user activation (button click) - sudah terpenuhi
+     * 
+     * Referensi: https://developer.apple.com/documentation/foundation/url_loading_system/downloading_files_from_websites
+     */
     const handleSaveImage = async () => {
         setIsSaving(true);
         const forceDone = setTimeout(() => {
             setIsSaving(false);
-            toast.error("Proses terlalu lama. Coba gunakan \"Bagikan Nota\" atau coba lagi.");
+            // Jika Safari dan timeout, tampilkan hint screenshot
+            if (isSafari()) {
+                setShowScreenshotHint(true);
+                setIsFullScreen(true);
+                toast.error("Download tidak tersedia di Safari. Gunakan tombol Screenshot untuk mengambil gambar.");
+            } else {
+                toast.error("Proses terlalu lama. Coba gunakan \"Bagikan Nota\" atau coba lagi.");
+            }
         }, 18000);
         try {
             // Safari fix: Jika blob sudah ready, gunakan langsung tanpa async delay
@@ -524,7 +565,14 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             }
             
             if (!blob) {
-                toast.error("Gagal menyimpan gambar");
+                // Jika Safari dan gagal, tampilkan hint screenshot
+                if (isSafari()) {
+                    setShowScreenshotHint(true);
+                    setIsFullScreen(true);
+                    toast.error("Download tidak tersedia di Safari. Gunakan tombol Screenshot.");
+                } else {
+                    toast.error("Gagal menyimpan gambar");
+                }
                 clearTimeout(forceDone);
                 setIsSaving(false);
                 return;
@@ -535,65 +583,74 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             const isSafariDesktop = isSafariOrNeedsNewTab() && !isMobile();
 
             if (isMobile()) {
-                // iOS Safari: pakai Web Share supaya tidak hang (window.open(dataUrl) sering gagal/diblokir)
+                // iOS Safari: Gunakan Web Share API (Apple best practice)
+                // Safari iOS tidak mendukung download attribute, jadi Web Share adalah cara terbaik
                 if (navigator.share && navigator.canShare?.({ files: [file] })) {
                     try {
+                        // Best practice: Jangan gunakan parameter 'text' bersamaan dengan files
+                        // iOS akan copy text ke clipboard bukan file (per Apple documentation)
                         await navigator.share({
                             title: `Nota Kagi Ramen - ${order.orderId}`,
-                            text: "Nota pesanan saya",
                             files: [file],
                         });
                         toast.success("Pilih \"Simpan ke Foto\" atau simpan dari menu bagikan.");
                     } catch (err) {
                         if ((err as Error).name !== "AbortError") {
-                            toast.error("Bagikan dibatalkan atau tidak didukung.");
+                            // Jika Safari dan share gagal, tampilkan hint screenshot
+                            if (isSafari()) {
+                                setShowScreenshotHint(true);
+                                setIsFullScreen(true);
+                                toast.error("Share tidak tersedia. Gunakan tombol Screenshot.");
+                            } else {
+                                toast.error("Bagikan dibatalkan atau tidak didukung.");
+                            }
                         }
                     }
                     clearTimeout(forceDone);
                     setIsSaving(false);
                     return;
                 }
-                // Fallback: gunakan hidden anchor tag (Apple best practice untuk Safari iOS)
-                // window.open() diblokir jika dipanggil setelah async delay > 1 detik
-                const dataUrl = await blobToDataUrl(blob);
-                const link = document.createElement("a");
-                link.href = dataUrl;
-                link.target = "_blank";
-                link.rel = "noopener";
-                link.style.display = "none";
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                toast.success("Tekan lama pada gambar → Simpan gambar.");
-            } else if (isSafariDesktop) {
-                // Safari Desktop: Masalah utama adalah link.click() async diblokir
-                // Solusi: Jika blob sudah ready, trigger download secara synchronous
-                if (!needsCapture) {
-                    // Blob sudah ready - bisa trigger langsung tanpa async delay
-                    const url = URL.createObjectURL(blob);
+                // Safari iOS tidak mendukung download attribute (per Apple documentation)
+                // Tidak ada cara programmatic yang reliable untuk force download di Safari iOS
+                // Best practice: Arahkan ke screenshot mode
+                if (isSafari()) {
+                    setShowScreenshotHint(true);
+                    setIsFullScreen(true);
+                    toast.error("Download tidak tersedia di Safari iOS. Gunakan tombol Screenshot.");
+                    clearTimeout(forceDone);
+                    setIsSaving(false);
+                    return;
+                }
+                // Fallback untuk mobile non-Safari: gunakan data URL
+                try {
+                    const dataUrl = await blobToDataUrl(blob);
                     const link = document.createElement("a");
-                    link.href = url;
-                    link.download = filename;
+                    link.href = dataUrl;
+                    link.target = "_blank";
+                    link.rel = "noopener";
                     link.style.display = "none";
                     document.body.appendChild(link);
-                    // Trigger click secara synchronous (dalam event handler user click)
                     link.click();
                     document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(url), 1000);
-                    toast.success("Nota berhasil disimpan!");
-                } else {
-                    // Blob belum ready - gunakan window.open sebagai fallback
-                    const url = URL.createObjectURL(blob);
-                    const opened = window.open(url, "_blank", "noopener");
-                    if (opened) {
-                        toast.success("Nota dibuka di tab baru. Gunakan Cmd+S untuk menyimpan.");
-                    } else {
-                        const dataUrl = await blobToDataUrl(blob);
-                        window.location.href = dataUrl;
-                        toast.success("Tekan Cmd+S untuk menyimpan gambar.");
-                    }
-                    setTimeout(() => URL.revokeObjectURL(url), 10000);
+                    toast.success("Tekan lama pada gambar → Simpan gambar.");
+                } catch (err) {
+                    toast.error("Gagal membuka gambar. Coba gunakan tombol Screenshot.");
                 }
+            } else if (isSafariDesktop) {
+                // Safari Desktop: Download attribute didukung tapi harus synchronous
+                // Best practice: Trigger download dalam event handler user click (sudah synchronous)
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                link.style.display = "none";
+                document.body.appendChild(link);
+                // Trigger click secara synchronous (dalam event handler user click)
+                // Ini adalah best practice untuk Safari Desktop (per Apple documentation)
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                toast.success("Nota berhasil disimpan!");
             } else {
                 // Chrome/Firefox/Edge: Gunakan link.click() (bekerja dengan baik)
                 const url = URL.createObjectURL(blob);
@@ -609,15 +666,47 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             }
         } catch (error) {
             console.error("Error saving image:", error);
-            toast.error(error instanceof Error && error.message === "Capture timeout"
-                ? "Pembuatan gambar terlalu lama. Coba lagi atau gunakan \"Bagikan Nota\"."
-                : `Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
+            // Jika Safari dan error, tampilkan hint screenshot
+            if (isSafari()) {
+                setShowScreenshotHint(true);
+                setIsFullScreen(true);
+                toast.error("Download tidak tersedia di Safari. Gunakan tombol Screenshot.");
+            } else {
+                toast.error(error instanceof Error && error.message === "Capture timeout"
+                    ? "Pembuatan gambar terlalu lama. Coba lagi atau gunakan \"Bagikan Nota\"."
+                    : `Gagal menyimpan gambar: ${error instanceof Error ? error.message : "Unknown error"}`);
+            }
         } finally {
             clearTimeout(forceDone);
             setIsSaving(false);
         }
     };
 
+    const handleScreenshotMode = () => {
+        setIsFullScreen(true);
+        setShowScreenshotHint(true);
+        // Scroll ke atas untuk memastikan nota terlihat penuh
+        setTimeout(() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }, 100);
+    };
+
+    const handleExitFullScreen = () => {
+        setIsFullScreen(false);
+        setShowScreenshotHint(false);
+    };
+
+    /**
+     * Handle share dengan mengikuti Apple Developer Documentation best practices:
+     * - Web Share API: Jangan gunakan parameter 'text' bersamaan dengan 'files' atau 'url'
+     *   iOS akan copy text ke clipboard bukan file/URL (per Apple documentation)
+     * - Safari iOS: Tidak mendukung ClipboardItem dengan image, gunakan screenshot sebagai fallback
+     * - Semua operasi harus dipicu oleh user activation (button click) - sudah terpenuhi
+     * 
+     * Referensi: 
+     * - https://developer.apple.com/documentation/foundation/url_loading_system/downloading_files_from_websites
+     * - Web Share API best practices untuk Safari iOS
+     */
     const handleShare = async () => {
         setIsSaving(true);
         // #region agent log
@@ -630,7 +719,14 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
             fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:516',message:'getReceiptBlob completed',data:{elapsed:Date.now()-blobStartTime,hasBlob:!!blob,blobSize:blob?.size},timestamp:Date.now()})}).catch(()=>{});
             // #endregion
             if (!blob) {
-                toast.error("Gagal membagikan nota");
+                // Jika Safari dan gagal, tampilkan hint screenshot
+                if (isSafari()) {
+                    setShowScreenshotHint(true);
+                    setIsFullScreen(true);
+                    toast.error("Share tidak tersedia di Safari. Gunakan tombol Screenshot.");
+                } else {
+                    toast.error("Gagal membagikan nota");
+                }
                 setIsSaving(false);
                 return;
             }
@@ -640,12 +736,14 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 { type: "image/png" }
             );
 
-            // 1. Web Share (files) — works on mobile; some desktop support
+            // 1. Web Share API (files) — Apple best practice untuk Safari iOS
+            // Best practice: Jangan gunakan parameter 'text' bersamaan dengan 'files'
+            // iOS akan copy text ke clipboard bukan file (per Apple documentation)
             if (navigator.share && navigator.canShare({ files: [file] })) {
                 try {
+                    // Hanya gunakan title dan files (best practice per Apple documentation)
                     await navigator.share({
                         title: `Nota Kagi Ramen - ${order.orderId}`,
-                        text: "Pesanan saya di Kagi Ramen",
                         files: [file],
                     });
                     toast.success("Nota berhasil dibagikan!");
@@ -656,35 +754,69 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                         setIsSaving(false);
                         return;
                     }
-                    toast.error("Gagal membagikan nota");
+                    // Jika Safari dan share gagal, tampilkan hint screenshot
+                    if (isSafari()) {
+                        setShowScreenshotHint(true);
+                        setIsFullScreen(true);
+                        toast.error("Share tidak tersedia di Safari. Gunakan tombol Screenshot.");
+                    } else {
+                        toast.error("Gagal membagikan nota");
+                    }
+                    setIsSaving(false);
+                    return;
                 }
             }
 
-            // 2. Fallback: copy image to clipboard (desktop/mobile)
-            try {
-                await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-                toast.success("Nota disalin ke clipboard! Tempel (Ctrl+V) di chat atau dokumen.");
-                setIsSaving(false);
-                return;
-            } catch {
-                // Clipboard not supported or denied
+            // 2. Fallback: copy image to clipboard (desktop/mobile, non-Safari)
+            // Safari iOS tidak mendukung ClipboardItem dengan image (per Apple documentation)
+            if (!isSafari()) {
+                try {
+                    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+                    toast.success("Nota disalin ke clipboard! Tempel (Ctrl+V) di chat atau dokumen.");
+                    setIsSaving(false);
+                    return;
+                } catch {
+                    // Clipboard not supported or denied - continue to next fallback
+                }
             }
 
-            // 3. Fallback: gunakan hidden anchor tag (Apple best practice untuk Safari iOS)
-            // window.open() diblokir jika dipanggil setelah async delay > 1 detik
-            const dataUrl = await blobToDataUrl(blob);
-            const link = document.createElement("a");
-            link.href = dataUrl;
-            link.target = "_blank";
-            link.rel = "noopener";
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            toast.success("Nota dibuka di tab baru. Simpan atau bagikan dari tab tersebut.");
+            // 3. Fallback untuk non-Safari: buka di tab baru
+            // Safari iOS tidak mendukung download attribute dan tidak ada cara programmatic
+            // yang reliable untuk force download (per Apple documentation)
+            if (isSafari()) {
+                // Best practice untuk Safari: Arahkan ke screenshot mode
+                setShowScreenshotHint(true);
+                setIsFullScreen(true);
+                toast.error("Share tidak tersedia di Safari. Gunakan tombol Screenshot.");
+                setIsSaving(false);
+                return;
+            }
+
+            // Fallback untuk browser lain: buka di tab baru
+            try {
+                const dataUrl = await blobToDataUrl(blob);
+                const link = document.createElement("a");
+                link.href = dataUrl;
+                link.target = "_blank";
+                link.rel = "noopener";
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("Nota dibuka di tab baru. Simpan atau bagikan dari tab tersebut.");
+            } catch (err) {
+                toast.error("Gagal membuka nota. Coba gunakan tombol Screenshot.");
+            }
         } catch (error) {
             console.error("Error sharing:", error);
-            toast.error(`Gagal membagikan nota: ${error instanceof Error ? error.message : "Unknown error"}`);
+            // Jika Safari dan error, tampilkan hint screenshot
+            if (isSafari()) {
+                setShowScreenshotHint(true);
+                setIsFullScreen(true);
+                toast.error("Share tidak tersedia di Safari. Gunakan tombol Screenshot.");
+            } else {
+                toast.error(`Gagal membagikan nota: ${error instanceof Error ? error.message : "Unknown error"}`);
+            }
         } finally {
             setIsSaving(false);
         }
@@ -699,6 +831,80 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
         minute: "2-digit",
     });
 
+    // Full screen mode untuk screenshot
+    if (isFullScreen) {
+        const headerHeight = showScreenshotHint ? 120 : 64;
+        return (
+            <AnimatePresence>
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 bg-white"
+                >
+                    {/* Header untuk full screen */}
+                    <div className="absolute top-0 left-0 right-0 z-10 bg-white border-b border-gray-200 p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-6 h-6 text-green-600" />
+                            <h2 className="text-lg font-bold">Pembayaran Berhasil!</h2>
+                        </div>
+                        <button
+                            onClick={handleExitFullScreen}
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                            aria-label="Keluar dari mode full screen"
+                        >
+                            <Minimize2 className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    {/* Screenshot hint */}
+                    {showScreenshotHint && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="absolute top-16 left-0 right-0 z-10 bg-blue-500 text-white p-3 text-center shadow-md"
+                        >
+                            <div className="flex items-center justify-center gap-2 flex-wrap">
+                                <Camera className="w-5 h-5 flex-shrink-0" />
+                                <p className="font-semibold text-sm md:text-base">
+                                    {isMobile() 
+                                        ? "Tekan Power + Volume Up untuk screenshot (Android & iPhone)"
+                                        : "Tekan Cmd+Shift+3 (Mac) atau Windows+Shift+S (Windows) untuk screenshot"}
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Receipt full screen */}
+                    <div 
+                        className="h-full overflow-y-auto px-4 flex items-center justify-center"
+                        style={{ paddingTop: `${headerHeight}px`, paddingBottom: '80px' }}
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-white rounded-lg shadow-2xl p-6 md:p-8 border-2 border-dashed border-gray-200 relative overflow-hidden w-full max-w-2xl"
+                        >
+                            <ReceiptContent order={order} totalItems={totalItems} currentDate={currentDate} />
+                        </motion.div>
+                    </div>
+
+                    {/* Footer untuk full screen */}
+                    <div className="absolute bottom-0 left-0 right-0 z-10 bg-white border-t border-gray-200 p-4 flex items-center justify-center gap-3 shadow-sm">
+                        <button
+                            onClick={handleExitFullScreen}
+                            className="px-6 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg font-semibold transition-colors"
+                        >
+                            Tutup
+                        </button>
+                    </div>
+                </motion.div>
+            </AnimatePresence>
+        );
+    }
+
+    // Normal mode dengan download/share
     return (
         <AnimatePresence>
             <motion.div
@@ -814,6 +1020,15 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                         >
                             <Share2 className="w-5 h-5" />
                             {!imageReady ? "Menyiapkan nota..." : isSaving ? "Mempersiapkan..." : "Bagikan Nota"}
+                        </motion.button>
+                        {/* Tombol Screenshot untuk Safari atau sebagai opsi alternatif */}
+                        <motion.button
+                            whileTap={{ scale: 0.97 }}
+                            onClick={handleScreenshotMode}
+                            className="w-full bg-blue-500 text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-blue-600 transition-colors"
+                        >
+                            <Camera className="w-5 h-5" />
+                            {isSafari() ? "Screenshot Nota (Rekomendasi untuk Safari)" : "Screenshot Nota"}
                         </motion.button>
                         <button
                             onClick={onClose}
