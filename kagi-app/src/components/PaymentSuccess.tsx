@@ -241,7 +241,13 @@ function ReceiptContentForCapture({ order, totalItems, currentDate }: { order: O
     );
 }
 
-const CAPTURE_TIMEOUT_MS = 12000;
+// Safari mobile lebih lambat, perlu timeout lebih lama
+const CAPTURE_TIMEOUT_MS = typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window) ? 25000 : 12000;
+// #region agent log
+if (typeof window !== "undefined") {
+    fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:244',message:'CAPTURE_TIMEOUT_MS configured',data:{timeout:CAPTURE_TIMEOUT_MS,isMobile:window.innerWidth < 768 || "ontouchstart" in window,windowWidth:window.innerWidth},timestamp:Date.now()})}).catch(()=>{});
+}
+// #endregion
 
 /** Capture receipt element to PNG blob (shared by Unduh & Bagikan). Timeout agar tidak hang di Safari/iOS. */
 async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> {
@@ -278,15 +284,25 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
         fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:263',message:'html2canvas imported',data:{elapsed:Date.now()-importStartTime},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         const isNarrow = typeof window !== "undefined" && window.innerWidth < 400;
+        const isMobileDevice = typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window);
         const canvasStartTime = Date.now();
+        // Safari mobile: gunakan scale lebih rendah dan optimasi untuk performa
         const canvas = await html2canvas(element, {
             backgroundColor: "#ffffff",
-            scale: isNarrow ? 1.5 : 2,
+            scale: isMobileDevice ? (isNarrow ? 1 : 1.2) : (isNarrow ? 1.5 : 2),
             logging: false,
             useCORS: true,
             allowTaint: false,
             windowWidth: element.scrollWidth,
             windowHeight: element.scrollHeight,
+            // Optimasi untuk Safari mobile: skip font loading yang lambat
+            ...(isMobileDevice && {
+                ignoreElements: (el) => {
+                    // Skip elemen yang tidak penting untuk mempercepat
+                    return false;
+                },
+                removeContainer: true,
+            }),
             onclone(_, clonedEl) {
                 (clonedEl as HTMLElement).style.visibility = "visible";
                 (clonedEl as HTMLElement).style.opacity = "1";
