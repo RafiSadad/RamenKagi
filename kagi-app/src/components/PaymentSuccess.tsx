@@ -257,8 +257,10 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
     // #endregion
     const timeoutPromise = new Promise<null>((_, reject) =>
         setTimeout(() => {
+            const elapsed = Date.now() - startTime;
             // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:250',message:'TIMEOUT TRIGGERED',data:{elapsed:Date.now()-startTime,timeout:CAPTURE_TIMEOUT_MS},timestamp:Date.now()})}).catch(()=>{});
+            console.error('[DEBUG] TIMEOUT TRIGGERED', { elapsed, timeout: CAPTURE_TIMEOUT_MS });
+            fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:250',message:'TIMEOUT TRIGGERED',data:{elapsed:elapsed,timeout:CAPTURE_TIMEOUT_MS},timestamp:Date.now()})}).catch(()=>{});
             // #endregion
             reject(new Error("Capture timeout"));
         }, CAPTURE_TIMEOUT_MS)
@@ -280,36 +282,47 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
 
         const importStartTime = Date.now();
         const { default: html2canvas } = await import("html2canvas");
+        const importElapsed = Date.now() - importStartTime;
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:263',message:'html2canvas imported',data:{elapsed:Date.now()-importStartTime},timestamp:Date.now()})}).catch(()=>{});
+        console.log('[DEBUG] html2canvas imported', { elapsed: importElapsed });
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:263',message:'html2canvas imported',data:{elapsed:importElapsed},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         const isNarrow = typeof window !== "undefined" && window.innerWidth < 400;
         const isMobileDevice = typeof window !== "undefined" && (window.innerWidth < 768 || "ontouchstart" in window);
         const canvasStartTime = Date.now();
-        // Safari mobile: gunakan scale lebih rendah dan optimasi untuk performa
+        // Safari mobile: gunakan scale lebih rendah dan optimasi sesuai Apple best practices
         const canvas = await html2canvas(element, {
             backgroundColor: "#ffffff",
-            scale: isMobileDevice ? (isNarrow ? 1 : 1.2) : (isNarrow ? 1.5 : 2),
+            scale: isMobileDevice ? (isNarrow ? 0.8 : 1) : (isNarrow ? 1.5 : 2),
             logging: false,
             useCORS: true,
             allowTaint: false,
             windowWidth: element.scrollWidth,
             windowHeight: element.scrollHeight,
-            // Optimasi untuk Safari mobile: skip font loading yang lambat
+            // Optimasi untuk Safari mobile sesuai dokumentasi Apple/Safari
             ...(isMobileDevice && {
-                ignoreElements: (el) => {
-                    // Skip elemen yang tidak penting untuk mempercepat
-                    return false;
-                },
                 removeContainer: true,
+                foreignObjectRendering: false, // Lebih cepat tapi kurang akurat
+                imageTimeout: 0, // Disable timeout untuk Safari iOS (default 15000ms terlalu pendek, Safari lebih lambat)
             }),
-            onclone(_, clonedEl) {
+            onclone(clonedDoc, clonedEl) {
                 (clonedEl as HTMLElement).style.visibility = "visible";
                 (clonedEl as HTMLElement).style.opacity = "1";
+                // Safari iOS: force load semua images yang lazy-loaded untuk menghindari hang
+                // Issue: html2canvas hang jika ada lazy-loaded images di halaman
+                if (isMobileDevice) {
+                    const images = clonedDoc.querySelectorAll('img[loading="lazy"]');
+                    images.forEach((img) => {
+                        (img as HTMLImageElement).loading = 'eager';
+                        (img as HTMLImageElement).removeAttribute('loading');
+                    });
+                }
             },
         });
+        const canvasElapsed = Date.now() - canvasStartTime;
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:276',message:'html2canvas completed',data:{elapsed:Date.now()-canvasStartTime,canvasWidth:canvas.width,canvasHeight:canvas.height},timestamp:Date.now()})}).catch(()=>{});
+        console.log('[DEBUG] html2canvas completed', { elapsed: canvasElapsed, width: canvas.width, height: canvas.height });
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:276',message:'html2canvas completed',data:{elapsed:canvasElapsed,canvasWidth:canvas.width,canvasHeight:canvas.height},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         element.style.transform = originalTransform;
         element.style.transformStyle = originalTransformStyle;
@@ -319,10 +332,13 @@ async function captureReceiptToBlob(element: HTMLElement): Promise<Blob | null> 
         const blobStartTime = Date.now();
         return new Promise<Blob | null>((resolve) => {
             canvas.toBlob((blob) => {
-                // #region agent log
-                fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:283',message:'Blob created',data:{elapsed:Date.now()-blobStartTime,totalElapsed:Date.now()-startTime,blobSize:blob?.size},timestamp:Date.now()})}).catch(()=>{});
-                // #endregion
-                resolve(blob ?? null);
+            const blobElapsed = Date.now() - blobStartTime;
+            const totalElapsed = Date.now() - startTime;
+            // #region agent log
+            console.log('[DEBUG] Blob created', { blobElapsed, totalElapsed, blobSize: blob?.size });
+            fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:283',message:'Blob created',data:{elapsed:blobElapsed,totalElapsed:totalElapsed,blobSize:blob?.size},timestamp:Date.now()})}).catch(()=>{});
+            // #endregion
+            resolve(blob ?? null);
             }, "image/png");
         });
     })();
@@ -356,6 +372,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 
 export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) {
     const receiptRef = useRef<HTMLDivElement>(null);
+    const visibleReceiptRef = useRef<HTMLDivElement>(null);
     const receiptBlobRef = useRef<Blob | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [imageReady, setImageReady] = useState(false);
@@ -449,13 +466,45 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
     const getReceiptBlob = async (): Promise<Blob | null> => {
         // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:396',message:'getReceiptBlob called',data:{hasCachedBlob:!!receiptBlobRef.current,hasReceiptRef:!!receiptRef.current},timestamp:Date.now()})}).catch(()=>{});
+        console.log('[DEBUG] getReceiptBlob called', { hasCachedBlob: !!receiptBlobRef.current, hasReceiptRef: !!receiptRef.current, hasVisibleRef: !!visibleReceiptRef.current });
+        fetch('http://127.0.0.1:7242/ingest/66bfc78f-337a-4604-9667-d8e01fdbd8c3',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentSuccess.tsx:396',message:'getReceiptBlob called',data:{hasCachedBlob:!!receiptBlobRef.current,hasReceiptRef:!!receiptRef.current,hasVisibleRef:!!visibleReceiptRef.current},timestamp:Date.now()})}).catch(()=>{});
         // #endregion
         if (receiptBlobRef.current) return receiptBlobRef.current;
-        if (!receiptRef.current) return null;
-        const blob = await captureReceiptToBlob(receiptRef.current);
-        if (blob) receiptBlobRef.current = blob;
-        return blob;
+        
+        // Coba capture dari off-screen element dulu
+        if (receiptRef.current) {
+            try {
+                const blob = await captureReceiptToBlob(receiptRef.current);
+                if (blob) {
+                    receiptBlobRef.current = blob;
+                    return blob;
+                }
+            } catch (error) {
+                console.warn('[DEBUG] Capture from off-screen failed, trying visible element', error);
+                // Fallback: gunakan visible element jika off-screen gagal
+                if (visibleReceiptRef.current) {
+                    try {
+                        const blob = await captureReceiptToBlob(visibleReceiptRef.current);
+                        if (blob) {
+                            receiptBlobRef.current = blob;
+                            return blob;
+                        }
+                    } catch (fallbackError) {
+                        console.error('[DEBUG] Capture from visible element also failed', fallbackError);
+                    }
+                }
+                throw error; // Re-throw original error
+            }
+        }
+        
+        // Fallback ke visible element jika off-screen tidak ada
+        if (visibleReceiptRef.current) {
+            const blob = await captureReceiptToBlob(visibleReceiptRef.current);
+            if (blob) receiptBlobRef.current = blob;
+            return blob;
+        }
+        
+        return null;
     };
 
 
@@ -504,15 +553,18 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                     setIsSaving(false);
                     return;
                 }
-                // Fallback: buka data URL (bisa gagal di Safari jika gambar besar)
+                // Fallback: gunakan hidden anchor tag (Apple best practice untuk Safari iOS)
+                // window.open() diblokir jika dipanggil setelah async delay > 1 detik
                 const dataUrl = await blobToDataUrl(blob);
-                const opened = window.open(dataUrl, "_blank", "noopener");
-                if (opened) {
-                    toast.success("Tekan lama pada gambar → Simpan gambar.");
-                } else {
-                    window.location.href = dataUrl;
-                    toast.success("Tekan lama pada gambar lalu pilih Simpan gambar.");
-                }
+                const link = document.createElement("a");
+                link.href = dataUrl;
+                link.target = "_blank";
+                link.rel = "noopener";
+                link.style.display = "none";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                toast.success("Tekan lama pada gambar → Simpan gambar.");
             } else if (isSafariDesktop) {
                 // Safari Desktop: Masalah utama adalah link.click() async diblokir
                 // Solusi: Jika blob sudah ready, trigger download secara synchronous
@@ -618,15 +670,18 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
                 // Clipboard not supported or denied
             }
 
-            // 3. Fallback: open image in new tab — user can save or share from there (desktop & mobile)
+            // 3. Fallback: gunakan hidden anchor tag (Apple best practice untuk Safari iOS)
+            // window.open() diblokir jika dipanggil setelah async delay > 1 detik
             const dataUrl = await blobToDataUrl(blob);
-            const opened = window.open(dataUrl, "_blank", "noopener");
-            if (opened) {
-                toast.success("Nota dibuka di tab baru. Simpan atau bagikan dari tab tersebut.");
-            } else {
-                window.location.href = dataUrl;
-                toast.success("Tekan lama pada gambar untuk simpan atau bagikan.");
-            }
+            const link = document.createElement("a");
+            link.href = dataUrl;
+            link.target = "_blank";
+            link.rel = "noopener";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            toast.success("Nota dibuka di tab baru. Simpan atau bagikan dari tab tersebut.");
         } catch (error) {
             console.error("Error sharing:", error);
             toast.error(`Gagal membagikan nota: ${error instanceof Error ? error.message : "Unknown error"}`);
@@ -710,6 +765,7 @@ export default function PaymentSuccess({ order, onClose }: PaymentSuccessProps) 
 
                         {/* Visible receipt with animation */}
                         <motion.div
+                            ref={visibleReceiptRef}
                             initial={{ 
                                 rotateX: -90, 
                                 opacity: 0, 
