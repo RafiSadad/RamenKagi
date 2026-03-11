@@ -20,6 +20,20 @@ export default function SmoothScroll({
         }
         requestAnimationFrame(raf);
 
+        // Stop Lenis when inputs are focused to prevent autoscroll
+        const stop = () => lenis.stop();
+        const start = () => lenis.start();
+        document.addEventListener("focusin", (e) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+                stop();
+            }
+        });
+        document.addEventListener("focusout", (e) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement) {
+                start();
+            }
+        });
+
         return () => {
             lenis.destroy();
         };
