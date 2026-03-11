@@ -48,7 +48,7 @@ export default function CartDrawer({
     return (
         <>
             <Drawer open={open} onOpenChange={onOpenChange}>
-                <DrawerContent className="bg-card border-t border-border max-h-[90vh]">
+                <DrawerContent className="bg-card border-t border-border max-h-[90dvh]">
                     <div className="mx-auto w-full max-w-md">
                         <DrawerHeader className="px-4 pb-2">
                             <div className="flex items-center justify-between">
@@ -64,7 +64,7 @@ export default function CartDrawer({
                             </div>
                         </DrawerHeader>
 
-                        <div className="px-4 pb-6 overflow-y-auto max-h-[70vh]">
+                        <div className="px-4 pb-6 overflow-y-auto max-h-[70dvh]">
                             {items.length === 0 ? (
                                 <div className="text-center py-16 flex flex-col items-center gap-2">
                                     <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-1">
