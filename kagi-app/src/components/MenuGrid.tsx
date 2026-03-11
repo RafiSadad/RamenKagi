@@ -97,13 +97,13 @@ export default function MenuGrid({ categories, menuItems }: MenuGridProps) {
                 <motion.div
                     ref={masonryRef}
                     layout
-                    className="columns-2 gap-x-3"
+                    className="columns-2 gap-x-4"
                 >
                     <AnimatePresence mode="popLayout">
                         {filteredItems.map((item, i) => (
                             <div
                                 key={item._id}
-                                className="mb-3 break-inside-avoid"
+                                className="mb-4 break-inside-avoid"
                             >
                                 <MenuCard
                                     item={item}
@@ -123,7 +123,7 @@ export default function MenuGrid({ categories, menuItems }: MenuGridProps) {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.3 }}
                                     onClick={() => handleSelectCategory(nextCta.nextSlug)}
-                                    className="w-full flex-1 min-h-0 text-left rounded-2xl border border-border bg-foreground/[0.04] hover:bg-foreground/[0.08] hover:border-primary/30 transition-all p-4 flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="w-full flex-1 min-h-0 text-left rounded-2xl border border-border bg-card shadow-sm hover:shadow-md hover:border-primary/30 transition-all p-4 flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                     <span className="text-2xl flex-shrink-0">🍜</span>
                                     <span className="text-sm font-medium text-foreground leading-snug flex-1">
@@ -137,9 +137,10 @@ export default function MenuGrid({ categories, menuItems }: MenuGridProps) {
                 </motion.div>
 
                 {filteredItems.length === 0 && (
-                    <div className="text-center py-12 text-white/40">
-                        <span className="text-4xl block mb-2">🍜</span>
-                        Belum ada menu di kategori ini
+                    <div className="flex flex-col items-center gap-3 py-16 rounded-2xl border border-dashed border-border">
+                        <span className="text-5xl">🍜</span>
+                        <p className="text-foreground/50 text-sm font-medium">Belum ada menu di kategori ini</p>
+                        <p className="text-foreground/30 text-xs">Coba pilih kategori lain</p>
                     </div>
                 )}
             </section>

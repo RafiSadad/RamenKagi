@@ -6,6 +6,8 @@ import MenuGrid from "@/components/MenuGrid";
 import Navbar from "@/components/Navbar";
 import CartDrawer from "@/components/CartDrawer";
 import WelcomePage from "@/components/WelcomePage";
+import ChefSpecial from "@/components/ChefSpecial";
+import FloatingOrderBar from "@/components/FloatingOrderBar";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Category, MenuItem, Banner, WelcomePage as WelcomePageData } from "@/types/menu";
 
@@ -65,6 +67,9 @@ export default function HomeClient({
               className="contents"
             >
               <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
+                <ChefSpecial menuItems={menuItems} />
+              </motion.div>
+              <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
                 <HeroBanner banners={banners} />
               </motion.div>
               <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
@@ -79,7 +84,9 @@ export default function HomeClient({
               menuItems={menuItems}
             />
 
-            <div className="h-20" />
+            <FloatingOrderBar onCartClick={() => setCartOpen(true)} />
+
+            <div className="h-28" />
           </motion.div>
         )}
       </AnimatePresence>

@@ -66,12 +66,14 @@ export default function CartDrawer({
 
                         <div className="px-4 pb-6 overflow-y-auto max-h-[70vh]">
                             {items.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <span className="text-5xl block mb-3">🍜</span>
-                                    <p className="text-muted-foreground text-sm">
-                                        Keranjang masih kosong nih...
+                                <div className="text-center py-16 flex flex-col items-center gap-2">
+                                    <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-1">
+                                        <span className="text-3xl">🍜</span>
+                                    </div>
+                                    <p className="text-foreground font-semibold text-sm">
+                                        Keranjang masih kosong
                                     </p>
-                                    <p className="text-muted-foreground/80 text-xs mt-1">
+                                    <p className="text-muted-foreground text-xs">
                                         Yuk pilih ramen favoritmu, Teman Kagi!
                                     </p>
                                 </div>

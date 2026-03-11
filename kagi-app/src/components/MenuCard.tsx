@@ -17,15 +17,6 @@ interface MenuCardProps {
     categories: Category[];
 }
 
-const CATEGORY_EMOJI: Record<string, string> = {
-    "kagi-signature": "🍜",
-    "kagi-spicy-series": "🌶️",
-    "kagi-donburi": "🍚",
-    "kids-menu": "👶",
-    "small-dishes": "🥟",
-    "additional": "➕",
-};
-
 export default function MenuCard({ item, index, menuItems, categories }: MenuCardProps) {
     const addItem = useCartStore((s) => s.addItem);
     const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -33,8 +24,7 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const isSoldOut = item.stock !== undefined && item.stock <= 0;
-    
-    // Find current item in cart
+
     const cartItem = cartItems.find((ci) => ci.menuItem._id === item._id);
     const quantity = cartItem?.quantity || 0;
     const isInCart = quantity > 0;
@@ -64,20 +54,18 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
         }
     };
 
-    const emoji = CATEGORY_EMOJI[item.category] || "🍜";
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.04 }}
             whileHover={{ y: -4 }}
-            className="group relative bg-foreground/[0.04] backdrop-blur-sm rounded-2xl overflow-hidden border border-border hover:border-primary/30 transition-all"
+            className="group relative bg-card rounded-2xl overflow-hidden shadow-sm hover:shadow-md border border-border/50 transition-all"
         >
-            {/* Media: lebar tetap, tinggi mengikuti gambar asli agar tidak terpotong */}
+            {/* Media */}
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="relative w-full block bg-gradient-to-br from-primary-foreground/30 to-transparent overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
+                className="relative w-full block overflow-hidden cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-t-2xl"
                 aria-label={`Lihat detail ${item.name}`}
             >
                 {item.mediaUrl && item.mediaType === "video" ? (
@@ -87,15 +75,15 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500 block"
+                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.mediaUrl && item.mediaType === "image" ? (
-                    <div className="relative w-full min-h-[140px]">
+                    <div className="relative w-full aspect-[4/3] overflow-hidden">
                         <img
                             src={item.mediaUrl}
                             alt={item.name}
-                            className="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
                             loading="lazy"
                             decoding="async"
                         />
@@ -107,115 +95,127 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-500 block"
+                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.image ? (
-                    <div className="relative w-full min-h-[140px]">
+                    <div className="relative w-full aspect-[4/3] overflow-hidden">
                         <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-auto block object-contain group-hover:scale-[1.02] transition-transform duration-500"
+                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
                             loading="lazy"
                             decoding="async"
                         />
                     </div>
                 ) : (
-                    <div className="min-h-36 flex items-center justify-center text-5xl opacity-40 group-hover:scale-110 transition-transform duration-500">
-                        {emoji}
+                    <div className="min-h-36 flex items-center justify-center text-5xl opacity-40 bg-muted group-hover:scale-110 transition-transform duration-500">
+                        🍜
                     </div>
                 )}
 
-                {/* Overlay badges & price - absolute di atas media */}
-                <div className="absolute inset-0 pointer-events-none flex flex-col">
-                    <div className="flex items-start justify-between p-2">
-                        <div className="flex flex-col gap-1">
-                            {item.stock !== undefined && item.stock <= 0 ? (
-                                <div className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                    Habis
-                                </div>
-                            ) : item.isPopular ? (
-                                <div className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                    ⭐ Popular
-                                </div>
-                            ) : null}
-                        </div>
-                        {item.category === "kagi-spicy-series" && (
-                            <div className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                🌶️ Pedas
-                            </div>
-                        )}
+                {/* Sold-out overlay */}
+                {isSoldOut && (
+                    <div className="absolute inset-0 bg-black/55 flex items-center justify-center pointer-events-none z-10">
+                        <span className="text-white font-bold text-sm tracking-widest uppercase opacity-90">Habis</span>
                     </div>
-                    <div className="mt-auto p-2">
-                        <div className="flex flex-wrap items-center gap-1.5 bg-black/60 backdrop-blur-sm text-foreground text-sm font-bold px-3 py-1 rounded-full w-fit">
-                    {isDiscountActive(item) ? (
-                        <>
-                            <span className="line-through text-foreground/60">
-                                {formatRupiah(item.price)}
+                )}
+
+                {/* Badges on image */}
+                <div className="absolute inset-x-0 top-0 pointer-events-none flex items-start justify-between p-2 z-20">
+                    <div className="flex flex-col gap-1">
+                        {item.stock !== undefined && item.stock <= 0 ? (
+                            <span className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                Habis
                             </span>
-                            <span>{formatRupiah(getEffectivePrice(item))}</span>
-                            {item.discountLabel ? (
-                                <span className="text-[10px] font-semibold text-primary">
-                                    {item.discountLabel}
-                                </span>
-                            ) : (
-                                <span className="text-[10px] font-semibold text-primary">
-                                    Promo
-                                </span>
-                            )}
-                        </>
-                    ) : (
-                        formatRupiah(getEffectivePrice(item))
-                    )}
-                        </div>
+                        ) : item.isPopular ? (
+                            <span className="bg-secondary text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                                BEST SELLER
+                            </span>
+                        ) : null}
                     </div>
+                    {item.category === "kagi-spicy-series" && (
+                        <span className="bg-destructive text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            🌶️ SPICY LV.{item.flavor_weight || 1}
+                        </span>
+                    )}
                 </div>
             </button>
 
             {/* Content */}
             <div className="p-3">
-                <h3 className="text-foreground font-semibold text-sm leading-tight">
+                <h3 className="text-foreground font-bold text-[15px] leading-tight">
                     {item.name}
                 </h3>
-                <p className="text-foreground/40 text-xs mt-1 line-clamp-2 text-ellipsis overflow-hidden" title={item.description ?? undefined}>
+
+                {/* Description */}
+                <p className="text-muted-foreground text-xs mt-1.5 line-clamp-2 leading-relaxed" title={item.description ?? undefined}>
                     {item.description || "—"}
                 </p>
 
-                {/* Add button or Quantity selector */}
-                {isInCart ? (
-                    <div className="mt-3 w-full flex items-center gap-2 bg-primary text-primary-foreground rounded-xl overflow-hidden">
+                {/* Price + Add button row */}
+                <div className="flex items-end justify-between mt-3">
+                    {/* Price */}
+                    <div className="flex flex-col">
+                        {isDiscountActive(item) ? (
+                            <>
+                                <span className="line-through text-muted-foreground text-[11px]">
+                                    {formatRupiah(item.price)}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                    <span className="text-primary font-bold text-sm">
+                                        {formatRupiah(getEffectivePrice(item))}
+                                    </span>
+                                    {item.discountLabel && (
+                                        <span className="text-[9px] font-semibold text-destructive bg-destructive/10 px-1.5 py-0.5 rounded-full">
+                                            {item.discountLabel}
+                                        </span>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <span className="text-primary font-bold text-sm">
+                                {formatRupiah(getEffectivePrice(item))}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Add / Quantity */}
+                    {isInCart ? (
+                        <div className="flex items-center gap-1 bg-primary rounded-full overflow-hidden">
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={handleDecrease}
+                                className="flex items-center justify-center w-8 h-8 text-white hover:bg-primary/80 transition-colors"
+                                aria-label="Kurangi jumlah"
+                            >
+                                <Minus className="w-3.5 h-3.5" />
+                            </motion.button>
+                            <span className="text-white text-xs font-bold min-w-[16px] text-center">
+                                {quantity}
+                            </span>
+                            <motion.button
+                                whileTap={{ scale: 0.9 }}
+                                onClick={handleIncrease}
+                                disabled={isSoldOut}
+                                className="flex items-center justify-center w-8 h-8 text-white hover:bg-primary/80 transition-colors disabled:opacity-50"
+                                aria-label="Tambah jumlah"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                            </motion.button>
+                        </div>
+                    ) : (
                         <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={handleDecrease}
-                            className="flex items-center justify-center w-10 h-10 hover:bg-primary/80 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            aria-label="Kurangi jumlah"
-                        >
-                            <Minus className="w-4 h-4" />
-                        </motion.button>
-                        <span className="flex-1 text-center text-sm font-semibold">
-                            {quantity}
-                        </span>
-                        <motion.button
-                            whileTap={{ scale: 0.9 }}
-                            onClick={handleIncrease}
+                            whileTap={isSoldOut ? undefined : { scale: 0.85 }}
+                            onClick={handleAdd}
                             disabled={isSoldOut}
-                            className="flex items-center justify-center w-10 h-10 hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                            aria-label="Tambah jumlah"
+                            className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label={`Tambah ${item.name}`}
                         >
                             <Plus className="w-4 h-4" />
                         </motion.button>
-                    </div>
-                ) : (
-                    <motion.button
-                        whileTap={isSoldOut ? undefined : { scale: 0.9 }}
-                        onClick={handleAdd}
-                        disabled={isSoldOut}
-                        className="mt-3 w-full flex items-center justify-center gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold py-2.5 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                        <Plus className="w-4 h-4" />
-                        {isSoldOut ? "Habis" : "Tambah"}
-                    </motion.button>
-                )}
+                    )}
+                </div>
             </div>
 
             {/* Menu Detail Modal */}

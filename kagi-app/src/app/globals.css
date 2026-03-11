@@ -49,49 +49,49 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-/* 
- * Kagi Ramen — Buku Menu Brand Palette:
- * Dark Teal: #1A4B56 (background utama, sophisticated)
- * Teal medium: #234A52 (card/surface)
- * White: #FFFFFF (teks di atas dark)
- * Warm Cream: #F5EFE6 (content block / light area)
- * Vibrant Orange: #E67E22 (aksen CTA, garis pemisah)
+/*
+ * Kagi Ramen — Light/Warm Cream Theme
+ * Background: #F5EFE6 (warm cream)
+ * Card: #FFFFFF (white)
+ * Text: #1A1A1A (dark)
+ * Primary CTA: #E67E22 (vibrant orange)
+ * Secondary: #1A4B56 (dark teal — buttons, accents, bottom bar)
  * Crimson: #CC3939 (spicy, sold out)
- * Freeway Green: #335005 (halal, NO PORK & NO LARD)
+ * Halal Green: #335005
  */
 
 :root {
   --radius: 0.75rem;
-  --background: #1A4B56;
-  --foreground: #FFFFFF;
-  --card: #234A52;
-  --card-foreground: #FFFFFF;
-  --popover: #234A52;
-  --popover-foreground: #FFFFFF;
+  --background: #F5EFE6;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
   --primary: #E67E22;
   --primary-foreground: #FFFFFF;
   --secondary: #1A4B56;
   --secondary-foreground: #FFFFFF;
-  --muted: #2D5A63;
-  --muted-foreground: rgba(255, 255, 255, 0.7);
-  --accent: #2D5A63;
-  --accent-foreground: #FFFFFF;
+  --muted: #E8E0D4;
+  --muted-foreground: #6B6B6B;
+  --accent: #EDE7DB;
+  --accent-foreground: #1A1A1A;
   --destructive: #CC3939;
-  --border: rgba(255, 255, 255, 0.12);
-  --input: rgba(255, 255, 255, 0.08);
+  --border: rgba(0, 0, 0, 0.08);
+  --input: rgba(0, 0, 0, 0.05);
   --ring: #E67E22;
   --chart-1: #E67E22;
   --chart-2: #CC3939;
   --chart-3: #335005;
   --chart-4: #F5EFE6;
   --chart-5: #1A4B56;
-  --sidebar: #234A52;
-  --sidebar-foreground: #FFFFFF;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1A1A1A;
   --sidebar-primary: #E67E22;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #2D5A63;
-  --sidebar-accent-foreground: #FFFFFF;
-  --sidebar-border: rgba(255, 255, 255, 0.12);
+  --sidebar-accent: #EDE7DB;
+  --sidebar-accent-foreground: #1A1A1A;
+  --sidebar-border: rgba(0, 0, 0, 0.08);
   --sidebar-ring: #E67E22;
   --halal: #335005;
   --cream-card: #F5EFE6;
