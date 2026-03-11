@@ -1,18 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
-import { MenuItem } from "@/types/menu";
+import { MenuItem, Category, getEffectivePrice, isDiscountActive } from "@/types/menu";
+import { formatRupiah } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
+import MenuDetailModal from "./MenuDetailModal";
 
 interface ChefSpecialProps {
     menuItems: MenuItem[];
+    categories: Category[];
 }
 
-export default function ChefSpecial({ menuItems }: ChefSpecialProps) {
+export default function ChefSpecial({ menuItems, categories }: ChefSpecialProps) {
     const popularItems = menuItems.filter((item) => item.isPopular);
     const addItem = useCartStore((s) => s.addItem);
+    const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
 
     if (popularItems.length === 0) return null;
 
@@ -45,20 +50,21 @@ export default function ChefSpecial({ menuItems }: ChefSpecialProps) {
                             initial={{ opacity: 0, x: 30 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.4, delay: i * 0.08 }}
-                            className="relative flex-shrink-0 w-[70vw] max-w-[280px] rounded-2xl overflow-hidden shadow-lg"
+                            className="relative flex-shrink-0 w-[70vw] max-w-[280px] rounded-2xl overflow-hidden shadow-lg cursor-pointer"
+                            onClick={() => setSelectedItem(item)}
                         >
                             {/* Full-bleed image */}
-                            <div className="relative w-full aspect-[3/4] overflow-hidden">
+                            <div className="relative w-full overflow-hidden">
                                 {imageUrl ? (
                                     <img
                                         src={imageUrl}
                                         alt={item.name}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-auto object-cover block"
                                         loading="lazy"
                                         decoding="async"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-secondary text-5xl opacity-40">
+                                    <div className="w-full aspect-[3/4] flex items-center justify-center bg-secondary text-5xl opacity-40">
                                         🍜
                                     </div>
                                 )}
@@ -80,17 +86,31 @@ export default function ChefSpecial({ menuItems }: ChefSpecialProps) {
                                         TRENDING NOW
                                     </span>
 
-                                    {/* Name + Add button row */}
-                                    <div className="flex items-end justify-between gap-2">
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-white font-bold text-lg leading-tight">
-                                                {item.name}
-                                            </h3>
-                                            <p className="text-white/70 text-xs mt-1 line-clamp-1">
-                                                {item.description || "—"}
-                                            </p>
-                                        </div>
+                                    <h3 className="text-white font-bold text-lg leading-tight">
+                                        {item.name}
+                                    </h3>
+                                    <p className="text-white/70 text-xs mt-1 line-clamp-1">
+                                        {item.description || "—"}
+                                    </p>
 
+                                    {/* Price + Add button */}
+                                    <div className="flex items-center justify-between mt-3">
+                                        <div className="flex items-center gap-2">
+                                            {isDiscountActive(item) ? (
+                                                <>
+                                                    <span className="text-white font-bold text-sm">
+                                                        {formatRupiah(getEffectivePrice(item))}
+                                                    </span>
+                                                    <span className="text-white/50 text-xs line-through">
+                                                        {formatRupiah(item.price)}
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <span className="text-white font-bold text-sm">
+                                                    {formatRupiah(getEffectivePrice(item))}
+                                                </span>
+                                            )}
+                                        </div>
                                         <motion.button
                                             whileTap={isSoldOut ? undefined : { scale: 0.85 }}
                                             onClick={(e) => {
@@ -110,6 +130,14 @@ export default function ChefSpecial({ menuItems }: ChefSpecialProps) {
                     );
                 })}
             </div>
+
+            <MenuDetailModal
+                item={selectedItem}
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                menuItems={menuItems}
+                categories={categories}
+            />
         </section>
     );
 }
