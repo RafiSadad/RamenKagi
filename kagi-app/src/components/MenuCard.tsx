@@ -75,15 +75,15 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500 block"
+                        className="w-full object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.mediaUrl && item.mediaType === "image" ? (
-                    <div className="relative w-full aspect-[4/3] overflow-hidden">
+                    <div className="relative w-full overflow-hidden">
                         <img
                             src={item.mediaUrl}
                             alt={item.name}
-                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                            className="w-full h-auto object-cover group-hover:scale-[1.05] transition-transform duration-500"
                             loading="lazy"
                             decoding="async"
                         />
@@ -95,15 +95,15 @@ export default function MenuCard({ item, index, menuItems, categories }: MenuCar
                         loop
                         playsInline
                         autoPlay
-                        className="w-full aspect-[4/3] object-cover group-hover:scale-105 transition-transform duration-500 block"
+                        className="w-full object-cover group-hover:scale-105 transition-transform duration-500 block"
                         aria-label={item.name}
                     />
                 ) : item.image ? (
-                    <div className="relative w-full aspect-[4/3] overflow-hidden">
+                    <div className="relative w-full overflow-hidden">
                         <img
                             src={item.image}
                             alt={item.name}
-                            className="w-full h-full object-cover group-hover:scale-[1.05] transition-transform duration-500"
+                            className="w-full h-auto object-cover group-hover:scale-[1.05] transition-transform duration-500"
                             loading="lazy"
                             decoding="async"
                         />

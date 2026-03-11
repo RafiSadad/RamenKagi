@@ -8,7 +8,6 @@ import { MenuItem, Category, getEffectivePrice, isDiscountActive } from "@/types
 import { useCartStore } from "@/store/cart-store";
 import { toast } from "sonner";
 import { getSuggestedUpsell } from "@/lib/upsell-scoring";
-import { useEffect, useState } from "react";
 import {
     Drawer,
     DrawerContent,
@@ -68,45 +67,39 @@ export default function MenuDetailModal({
     const updateQuantity = useCartStore((s) => s.updateQuantity);
     const removeItem = useCartStore((s) => s.removeItem);
     const cartItems = useCartStore((s) => s.items);
-    const [showUpsell, setShowUpsell] = useState(false);
-
-    if (!item) return null;
-
-    const isSoldOut = item.stock !== undefined && item.stock <= 0;
-    const cartItem = cartItems.find((ci) => ci.menuItem._id === item._id);
+    const isSoldOut = item ? item.stock !== undefined && item.stock <= 0 : false;
+    const cartItem = item ? cartItems.find((ci) => ci.menuItem._id === item._id) : undefined;
     const quantity = cartItem?.quantity || 0;
     const isInCart = quantity > 0;
 
     // Get upsell suggestion
     const upsellSuggestion = getSuggestedUpsell(cartItems, menuItems);
-    // Show upsell if item is in cart OR if user just added it
-    const shouldShowUpsell = (isInCart || showUpsell) && upsellSuggestion.suggestedItem;
+    // Show upsell when item is in cart and modal is open
+    const shouldShowUpsell = isOpen && isInCart && !!upsellSuggestion.suggestedItem;
 
     const handleAdd = () => {
-        if (isSoldOut) return;
+        if (!item || isSoldOut) return;
         addItem(item);
         toast.success(`${item.name} ditambahkan ke keranjang!`, {
             duration: 2000,
         });
-        setShowUpsell(true);
     };
 
     const handleDecrease = () => {
+        if (!item) return;
         if (quantity > 1) {
             updateQuantity(item._id, quantity - 1);
         } else {
             updateQuantity(item._id, 0);
-            setShowUpsell(false);
         }
     };
 
     const handleIncrease = () => {
-        if (isSoldOut) return;
+        if (!item || isSoldOut) return;
         if (isInCart) {
             updateQuantity(item._id, quantity + 1);
         } else {
             addItem(item);
-            setShowUpsell(true);
         }
     };
 
@@ -115,19 +108,9 @@ export default function MenuDetailModal({
         toast.success(`${upsellItem.name} ditambahkan!`, { duration: 1500 });
     };
 
-    const emoji = CATEGORY_EMOJI[item.category] || "🍜";
-    const imageUrl = getMenuItemImageUrl(item);
-    const category = categories.find((c) => c.slug === item.category);
-
-    // Show upsell when modal opens if item is already in cart
-    useEffect(() => {
-        if (isOpen && isInCart) {
-            setShowUpsell(true);
-        } else if (!isOpen) {
-            setShowUpsell(false);
-        }
-    }, [isOpen, isInCart]);
-
+    const emoji = item ? (CATEGORY_EMOJI[item.category] || "🍜") : "🍜";
+    const imageUrl = item ? getMenuItemImageUrl(item) : null;
+    const category = item ? categories.find((c) => c.slug === item.category) : undefined;
 
     if (!item) return null;
 
@@ -201,10 +184,10 @@ export default function MenuDetailModal({
                             </div>
 
                             {/* Price tag */}
-                            <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-1.5 bg-black/70 backdrop-blur-sm text-foreground text-lg font-bold px-4 py-2 rounded-full">
+                            <div className="absolute bottom-4 left-4 flex flex-wrap items-center gap-1.5 bg-black/70 backdrop-blur-sm text-white text-lg font-bold px-4 py-2 rounded-full">
                                 {isDiscountActive(item) ? (
                                     <>
-                                        <span className="line-through text-foreground/60 text-base">
+                                        <span className="line-through text-white/60 text-base">
                                             {formatRupiah(item.price)}
                                         </span>
                                         <span>{formatRupiah(getEffectivePrice(item))}</span>

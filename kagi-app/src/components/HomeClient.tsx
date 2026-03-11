@@ -67,7 +67,7 @@ export default function HomeClient({
               className="contents"
             >
               <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
-                <ChefSpecial menuItems={menuItems} />
+                <ChefSpecial menuItems={menuItems} categories={categories} />
               </motion.div>
               <motion.div variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
                 <HeroBanner banners={banners} />
